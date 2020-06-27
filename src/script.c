@@ -79,9 +79,8 @@ int left_cell_idx(int i, int j, int n, int m, int idx) // todo
     }
 
     return idx - 1;
-
-
 }
+
 int up_left_cell_idx(int i, int j, int n, int m, int idx) // todo
 {
     // controllo se la cella sopra a sinistra è valida o è fuori dalla matrice
@@ -93,8 +92,6 @@ int up_left_cell_idx(int i, int j, int n, int m, int idx) // todo
     {
         return -1;
     }
-
-
 
     return idx - 1;
 }
@@ -152,7 +149,6 @@ int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, in
     // alloca l'array script_r (lungo al più numValidCells + 1)
     // verrà letto a ritroso fino al primo elemento non nullo
     int numElemsScript_r = numValidCells + 1;
-
     edit* scriptR = (edit*) malloc((numValidCells + 1)*sizeof(edit));
 
     // azzera lo script
