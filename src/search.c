@@ -24,7 +24,13 @@
 #include "../include/search.h"
 #include "../include/list.h"
 #include "../include/script.h"
-#include "../include/safe_str/strlcpy.h"
+
+// glibc non ha strlcpy
+#ifdef __GNU_LIBRARY__
+    #include "../include/safe_str/strlcpy.h"
+#else
+    #include <string.h>
+#endif
 
 char* inputFile;
 static node* list = NULL;
