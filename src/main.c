@@ -199,45 +199,7 @@ int main(int argc, char** argv)
     //    print(&script[i]);
     //}
 
-
-
     //free(script);
 
     exit(0);
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
