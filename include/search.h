@@ -33,7 +33,7 @@ char** search(FILE* inputfile, DIR* dir);
 
 char** searchLimit(FILE* inputfile, DIR* dir, int limit);
 
-int searchPrint(char* filename, char* dir);
+int search_min(char* filename, char* dir);
 
 
 

@@ -36,22 +36,26 @@ char* inputFile;
 static node* list = NULL;
 FilenameDistance* fdList = NULL;
 
-int printDistances(const char *fname, const struct stat *st, int type)
+int print_callback(const char *fname, const struct stat *st, int type)
 {
     if (type != FTW_F)
         return 0;
 
-    int distance = fileDistance(fname, inputFile);
+    int distance = file_distance(fname, inputFile);
 
     FilenameDistance* fd = (FilenameDistance*) malloc(sizeof(FilenameDistance));
-    if (!fd) return -1;
+    if (!fd)
+    {
+        // todo errore
+        return -1;
+    }
 
     fd->distance = distance;
 
     // copia e rileva il troncamento
     if (strlcpy(fd->filename, fname, sizeof(fd->filename)) >= sizeof(fd->filename))
     {
-        // errore?
+        // todo errore?
         return -1;
     }
 
@@ -86,7 +90,7 @@ void saveArray(node* node)
 
 }
 
-int searchPrint(char* f, char* dir)
+int search_min(char* f, char* dir)
 {
     if (f == NULL || dir == NULL)
     {
@@ -96,7 +100,7 @@ int searchPrint(char* f, char* dir)
     inputFile = f;
 
     // dir traversal, 8 dir aperte max
-    ftw(dir, printDistances, 8);
+    ftw(dir, print_callback, 8);
 
     traverse(list, (callback_t) printNode);
 

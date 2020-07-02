@@ -16,10 +16,13 @@
 */
 
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 
-#include "../include/distance.h"
-#include "../include/script.h"
-#include "../include/util.h"
+#include "../include/util.h" // minmin, swap_array_int
 
 int levdistOpt(char* str1, size_t len1, char* str2, size_t len2)
 {
@@ -69,38 +72,70 @@ int levdistOpt(char* str1, size_t len1, char* str2, size_t len2)
 
     // the distance is the cost for transforming all letters in both strings
     int d = cost[len1 - 1];
-    
+
     free(cost);
     free(newcost);
 
     return d;
 }
 
-int fileDistance(char* file1, char* file2)
+int file_distance(char* file1, char* file2)
 {
-    char* buff1;
-    char* buff2;
+    int f1 = open(file1, O_RDONLY);
+    int f2 = open(file2, O_RDONLY);
 
-    int size1 = 0;
-    int size2 = 0;
-
-    size1 = loadFile(file1, &buff1);
-    size2 = loadFile(file2, &buff2);
-
-    if (size1 < 0 || size2 < 0 ||
-        buff1 == NULL || buff2 == NULL)
+    if (f1 == -1 || f2 == -1)
     {
         return -1;
     }
 
+    struct stat st;
+    stat(file1, &st);
+    int size1 = st.st_size;
+
+    struct stat st2;
+    stat(file2, &st2);
+    int size2 = st2.st_size;
+
+    char* map1 = mmap(NULL, size1, PROT_READ, MAP_SHARED, f1, 0);  // todo check if != -1
+    char* map2 = mmap(NULL, size2, PROT_READ, MAP_SHARED, f2, 0);  // todo check if != -1
+
     int distance = 0;
 
-    distance = levdistOpt(buff1, size1, buff2, size2);
+    distance = levdistOpt(map1, size1, map2, size2);
 
-    free(buff1);
-    free(buff2);
+    munmap(map1, size1);
+    munmap(map2, size2);
+
+    close(f1);
+    close(f2);
 
     return distance;
+
+    //char* buff1;
+    //char* buff2;
+//
+    //int size1 = 0;
+    //int size2 = 0;
+//
+    //size1 = loadFile(file1, &buff1);
+    //size2 = loadFile(file2, &buff2);
+//
+    //if (size1 < 0 || size2 < 0 ||
+    //    buff1 == NULL || buff2 == NULL)
+    //{
+    //    return -1;
+    //}
+//
+    //int distance = 0;
+//
+    //distance = levdistOpt(buff1, size1, buff2, size2);
+//
+    //free(buff1);
+    //free(buff2);
+//
+    //return distance;
+
 }
 
 

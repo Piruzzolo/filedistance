@@ -27,7 +27,6 @@ int min(int x, int y);
 
 int minmin(int x, int y, int z);
 
-
 void swap_array_edit(edit* a, edit* b, size_t n);
 
 void swap_array_int(int* a, int* b, size_t n);

@@ -28,19 +28,19 @@ typedef enum
     INSERTION
 } edit_type;
 
-struct _edit
+typedef struct _edit
 {
     edit_type type;
-    unsigned int pos;
+    unsigned int pos ;
     unsigned int score;
     char arg1;
     char arg2;
     struct _edit* prev;
-};
+} edit;
 
-typedef struct _edit edit;
+void print_edit(edit* e, FILE* outfile);
 
-int fileDistance(char* file1, char* file2);
+int file_distance(char* file1, char* file2);
 
 int levenshtein_distance(char* str1, char* str2, edit** script);
 int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, int n);

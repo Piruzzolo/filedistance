@@ -17,9 +17,53 @@
 
 #include <stdlib.h> // malloc, free
 #include <string.h>
+#include <stdint.h>
 
 #include "../include/script.h"
 #include "../include/util.h"
+
+void print_edit(edit* e, FILE* outfile)
+{
+    if (outfile == NULL )
+    {
+        return; // error?
+    }
+
+    if (e == NULL)
+    {
+        return; // error?
+    }
+
+    uint32_t n = 0;
+    char b = 0;
+
+    switch (e->type)
+    {
+        case INSERTION:
+        {
+            // ADDnb - add byte n in position b
+            fprintf(outfile, "ADD%u%c", e->pos, e->arg2);
+            //printf("Insert %c", e->arg2);
+            break;
+        }
+        case DELETION:
+        {
+            // DELnb - delete byte in position b
+            fprintf(outfile, "DEL%u", e->pos);
+            //printf("Delete %c", e->arg1);
+            break;
+        }
+        case SUBSTITUTION:
+        {
+            // ADDnb - add byte n in position b
+            fprintf(outfile, "SET%u%c", e->pos, e->arg1);
+            //printf("Substitute %c for %c", e->arg2, e->arg1);
+            break;
+        }
+        default:
+            return;
+    }
+}
 
 int manhattanDistance(int x1, int y1, int x2, int y2)
 {
@@ -113,6 +157,7 @@ int up_cell_idx(int i, int j, int n, int m, int idx) // todo
     {
 
     }
+
     if (isOutCell(i-1, j+1, n, m))
     {
 
@@ -134,7 +179,7 @@ int up_cell_idx(int i, int j, int n, int m, int idx) // todo
 
 }
 
-
+// todo rivedere n, m
 int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, int n)
 {
     if (m < n)
@@ -160,24 +205,27 @@ int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, in
      */
 
     // all'inizio rowAbove è vuoto (non c'è nessuna riga sopra)
-    edit* rowAbove = (edit*) malloc((m)*sizeof(edit));
+    edit* rowAbove = (edit*) malloc((n+1)*sizeof(edit));
     //clear_edit_array(rowAbove, m);
-    init_initial(rowAbove, m);
+    init_initial(rowAbove, n);
 
-    // alloco la riga di lavoro; verra swappato con la riga sopra
+    // alloco la riga di lavoro; verra swappata con la riga sopra
 
-    edit* current = (edit*) malloc((m)*sizeof(edit));
+    edit* current = (edit*) malloc((n+1)*sizeof(edit));
     //clear_edit_array(current, m);
 
-    edit left = {.score = 0, .arg1 = 0, .arg2 = 0};
+    edit left = {.score = 0,
+                 .arg1 = 0,
+                 .arg2 = 0,
+                 .prev = NULL};
 
     unsigned int substitution_cost = 0;
     unsigned int del = 0, ins = 0, subst = 0;
     unsigned int best = 0;
 
-    for (int i = 1; i <= n; i++)
+    for (int i = 1; i <= m; i++)
     {
-        for (int j = 1; j <= m; j++)
+        for (int j = 1; j <= n; j++)
         {
             substitution_cost = str1[i - 1] == str2[j - 1] ? 0 : 1;
 

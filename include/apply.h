@@ -18,7 +18,11 @@
 #ifndef APPLY_H
 #define APPLY_H
 
+#include <stdio.h>
 
-
+/**
+ * @brief Applies the edit operations in file scriptfile to infile, writing the result to outfile
+ */
+int apply(FILE* infile, FILE* scriptfile, FILE* outfile);
 
 #endif // APPLY_H
