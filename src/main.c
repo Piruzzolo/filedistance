@@ -46,11 +46,11 @@ void abortHandler()
 
 void print(edit* e)
 {
-    if (e->type == INSERTION)
+    if (e->type == INS)
     {
         printf("Insert %c", e->arg2);
     }
-    else if (e->type == DELETION)
+    else if (e->type == DEL)
     {
         printf("Delete %c", e->arg1);
     }
@@ -111,8 +111,16 @@ int main(int argc, char** argv)
         }
         else if (argc == 5)
         {
-            //save_edit_script(argv[2], argv[3], argv[4]);
-            exit(EXIT_SUCCESS);
+            int ret = file_distance_script(argv[2], argv[3], argv[4]);
+            if (ret == 0)
+            {
+                exit(EXIT_SUCCESS);
+            }
+            else
+            {
+                printf("Can't save the output file\n");
+                exit(EXIT_FAILURE);
+            }
         }
         else
         {
@@ -187,7 +195,7 @@ int main(int argc, char** argv)
     int len2 = strlen(str2);
 
     edit* ss = NULL;
-    distance1 = levenshtein_matrix_calculate(ss, str1, len1, str2, len2);
+    distance1 = levenshtein_create_script(ss, str1, len1, str2, len2);
 
     //distance2 = levdistOpt(str1, strlen(str1) + 1, str2, strlen(str2) + 1);
 

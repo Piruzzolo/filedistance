@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include "../include/util.h"
 
-int loadFile(char* filename, char** buffer)
+int load_file(char* filename, char** buffer)
 {
     int size = 0;
 
@@ -38,7 +38,7 @@ int loadFile(char* filename, char** buffer)
 
     *buffer = (char*) malloc(size + 1);
 
-    if (!buffer || size != fread(*buffer, sizeof(char), size, f))
+    if (size != fread(*buffer, sizeof(char), size, f))
     {
         free(*buffer);
         return -2;
@@ -82,4 +82,9 @@ void swap_array_int(int* a, int* b, size_t n)
 int min(int x, int y)
 {
     return (x < y) ? x : y;
+}
+
+int max(int x, int y)
+{
+    return (x > y) ? x : y;
 }

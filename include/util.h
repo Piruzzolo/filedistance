@@ -21,9 +21,11 @@
 #include <stdio.h>
 #include "script.h"
 
-int loadFile(char* filename, char** buffer);
+int load_file(char* filename, char** buffer);
 
 int min(int x, int y);
+
+int max(int x, int y);
 
 int minmin(int x, int y, int z);
 
