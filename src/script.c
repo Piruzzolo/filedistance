@@ -138,7 +138,7 @@ int up_cell_idx(int i, int j, int n, int m, int idx) // todo
 }
 
 // todo rivedere n, m
-int levenshtein_create_script(edit** script, char* str1, int m, char* str2, int n)
+int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n)
 {
     if (m < n)
     {

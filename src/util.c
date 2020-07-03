@@ -69,15 +69,16 @@ void swap_array_edit(edit* a, edit* b, size_t n)
     }
 }
 
-void swap_array_int(int* a, int* b, size_t n)
+void swap_array_int( int *a, int *b, size_t n )
 {
-    for (size_t i = 0; i < n; i++)
+    for ( size_t i = 0; i < n; i++ )
     {
         int tmp = a[i];
         a[i] = b[i];
         b[i] = tmp;
     }
 }
+
 
 int min(int x, int y)
 {

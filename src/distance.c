@@ -22,8 +22,7 @@
 
 #define BUFSIZE 256
 
-
-int levdistOpt(char* x, int m, char* y, int n)
+int lev_dist(const char* x, size_t m, const char* y, size_t n)
 {
     int distance;
 
@@ -51,7 +50,9 @@ int levdistOpt(char* x, int m, char* y, int n)
             }
         }
 
-        swap_array_int(curr, prev, sizeof(tmp));
+        tmp = prev;
+        prev = curr;
+        curr = tmp;
 
         memset((void*) curr, 0, sizeof(int) * (n + 1));
     }
@@ -65,7 +66,7 @@ int levdistOpt(char* x, int m, char* y, int n)
 }
 
 
-int file_distance(char* file1, char* file2)
+int file_distance(const char* file1, const char* file2)
 {
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
@@ -79,11 +80,12 @@ int file_distance(char* file1, char* file2)
     {
         while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
         {
-            dist += levdistOpt(buffer1, strlen(buffer1), buffer2, strlen(buffer2));
+            dist += lev_dist(buffer1, strlen(buffer1), buffer2, strlen(buffer2));
         }
-    } else
+    }
+    else
     {
-        // some error
+        return -1;
     }
 
     fclose(f1);
