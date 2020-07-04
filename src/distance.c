@@ -22,16 +22,21 @@
 
 #define BUFSIZE 256
 
-int levenshtein_dist(char* str1, size_t len1, char* str2, size_t len2)
+
+int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2) // todo: handle null sizes
 {
     if (len1 < len2)
     {
         return levenshtein_dist(str2, len2, str1, len1);
     }
+
     int distance = 0;
 
     int* prev = malloc((len2 + 1) * sizeof(int));
+    if (!prev) return -1;
+
     int* curr = malloc((len2 + 1) * sizeof(int));
+    if (!curr) return -1;
     int* tmp = NULL;
 
     for (int i = 0; i <= len2; i++)
@@ -73,7 +78,7 @@ int levenshtein_dist(char* str1, size_t len1, char* str2, size_t len2)
     return distance;
 }
 
-
+// CHECKED SAFE
 int levenshtein_file_distance(const char* file1, const char* file2)
 {
     FILE* f1 = fopen(file1, "r" );

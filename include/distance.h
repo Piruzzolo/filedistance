@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-int levenshtein_dist(char* str1, size_t len1, char* str2, size_t len2);
+int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2);
 
 int levenshtein_file_distance(const char* file1, const char* file2);
 
