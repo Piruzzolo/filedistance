@@ -22,7 +22,7 @@
 
 #define BUFSIZE 256
 
-int lev_dist(const char* x, size_t m, const char* y, size_t n)
+int levenshtein_dist(const char* x, size_t m, const char* y, size_t n)
 {
     int distance;
 
@@ -80,7 +80,7 @@ int file_distance(const char* file1, const char* file2)
     {
         while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
         {
-            dist += lev_dist(buffer1, strlen(buffer1), buffer2, strlen(buffer2));
+            dist += levenshtein_dist(buffer1, strlen(buffer1), buffer2, strlen(buffer2));
         }
     }
     else

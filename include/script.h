@@ -19,6 +19,7 @@
 #define FILEDISTANCE_SCRIPT_H
 
 #include <stdio.h> // size_t
+#include "../include/distance.h"
 
 typedef enum
 {
@@ -42,7 +43,6 @@ void print_edit(edit* e, FILE* outfile);
 
 int file_distance(const char* file1, const char* file2);
 
-int levenshtein_distance(char* str1, char* str2, edit** script);
 int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n);
 
 int file_distance_script(char* file1, char* file2, char* outfile);
