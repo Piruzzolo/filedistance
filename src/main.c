@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include <limits.h>
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
@@ -33,7 +32,6 @@
 #include "../include/script.h"
 #include "../include/search.h"
 
-int parseArgs(int argc, char** argv);
 
 static char abortMsg[] = "\nCTRL-C received. Stop.\n";
 
@@ -42,7 +40,7 @@ void abortHandler()
     // it's not advisable to call printf inside an interrupt
     // handler cause it's not reentrant
     write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 
