@@ -23,7 +23,7 @@
 
 #include "../include/search.h"
 #include "../include/list.h"
-#include "../include/script.h"
+#include "../include/distance.h"
 
 // glibc non ha strlcpy
 #ifdef __GNU_LIBRARY__
@@ -41,7 +41,7 @@ int print_callback(const char *fname, const struct stat *st, int type)
     if (type != FTW_F)
         return 0;
 
-    int distance = file_distance(fname, inputFile);
+    int distance = levenshtein_file_distance(fname, inputFile);
 
     FilenameDistance* fd = (FilenameDistance*) malloc(sizeof(FilenameDistance));
     if (!fd)

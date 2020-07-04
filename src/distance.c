@@ -66,7 +66,7 @@ int levenshtein_dist(const char* x, size_t m, const char* y, size_t n)
 }
 
 
-int file_distance(const char* file1, const char* file2)
+int levenshtein_file_distance(const char* file1, const char* file2)
 {
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );

@@ -22,6 +22,7 @@
 #include "../include/script.h"
 #include "../include/util.h"
 
+#define BUFSIZE 256
 
 int manhattanDistance(int x1, int y1, int x2, int y2)
 {
@@ -319,7 +320,7 @@ int levenshtein_distance(char* str1, char* str2, edit** script)
 }
 
 
-void print_edit(edit* e, FILE* outfile)
+void print_edit(const edit* e, FILE* outfile)
 {
     if (outfile == NULL )
     {
@@ -362,7 +363,7 @@ void print_edit(edit* e, FILE* outfile)
     }
 }
 
-void save_file_script(edit** script, size_t len, char* outfile)
+void save_file_script(const edit** script, size_t len, const char* outfile)
 {
     FILE* out = fopen(outfile, "w+");
     if (!out)
@@ -379,32 +380,42 @@ void save_file_script(edit** script, size_t len, char* outfile)
     fclose(out);
 }
 
-int file_distance_script(char* file1, char* file2, char* outfile)
+int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile) // todo
 {
-    char* buff1;
-    char* buff2;
+    FILE* f1 = fopen(file1, "r" );
+    FILE* f2 = fopen(file2, "r" );
 
-    int size1 = 0;
-    int size2 = 0;
+    //FILE* tmp = tmpfile();
 
-    size1 = load_file(file1, &buff1);
-    size2 = load_file(file2, &buff2);
+    int dist = 0;
 
-    if (size1 < 0 || size2 < 0 || buff1 == NULL || buff2 == NULL)
+    char buffer1[BUFSIZE];
+    char buffer2[BUFSIZE];
+
+    edit** script = NULL;
+
+    if (f1 != NULL && f2 != NULL)
     {
-        // todo improve
+        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
+        {
+            dist += levenshtein_create_script(script, buffer1, strlen(buffer1), buffer2, strlen(buffer2));
+        }
+    }
+    else
+    {
         return -1;
     }
 
-    edit** script = NULL;
-    int len = levenshtein_create_script(script, buff1, size1, buff2, size2);
 
-    save_file_script(script, len, outfile);
 
-    free(buff1);
-    free(buff2);
+    fclose(f1);
+    fclose(f2);
 
-    return 0;
+    return dist;
+
+    //int len = levenshtein_create_script(script, buff1, size1, buff2, size2);
+//
+    //save_file_script(script, len, outfile);
 
 }
 

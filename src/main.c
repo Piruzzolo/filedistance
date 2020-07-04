@@ -29,6 +29,7 @@
     #include "../include/safe_str/strlcpy.h"
 #endif
 
+#include "../include/distance.h"
 #include "../include/script.h"
 #include "../include/search.h"
 
@@ -104,7 +105,7 @@ int main(int argc, char** argv)
         if (argc == 4)
         {
             time_t begin = time(NULL);
-                int result = file_distance(argv[2], argv[3]);
+                int result = levenshtein_file_distance(argv[2], argv[3]);
             time_t end = time(NULL);
 
             if (result < 0)
@@ -119,7 +120,7 @@ int main(int argc, char** argv)
         }
         else if (argc == 5)
         {
-            int ret = file_distance_script(argv[2], argv[3], argv[4]);
+            int ret = levenshtein_file_distance_script(argv[2], argv[3], argv[4]);
             if (ret == 0)
             {
                 exit(EXIT_SUCCESS);

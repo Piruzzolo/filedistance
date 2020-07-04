@@ -39,12 +39,10 @@ typedef struct _edit
     struct _edit* prev;
 } edit;
 
-void print_edit(edit* e, FILE* outfile);
-
-int file_distance(const char* file1, const char* file2);
+void print_edit(const edit* e, FILE* outfile);
 
 int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n);
 
-int file_distance_script(char* file1, char* file2, char* outfile);
+int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile);
 
 #endif // FILEDISTANCE_SCRIPT_H
