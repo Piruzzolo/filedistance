@@ -22,48 +22,6 @@
 #include "../include/script.h"
 #include "../include/util.h"
 
-void print_edit(edit* e, FILE* outfile)
-{
-    if (outfile == NULL )
-    {
-        return; // error?
-    }
-
-    if (e == NULL)
-    {
-        return; // error?
-    }
-
-    uint32_t n = 0;
-    char b = 0;
-
-    switch (e->type)
-    {
-        case INSERTION:
-        {
-            // ADDnb - add byte n in position b
-            fprintf(outfile, "ADD%u%c", e->pos, e->arg2);
-            //printf("Insert %c", e->arg2);
-            break;
-        }
-        case DELETION:
-        {
-            // DELnb - delete byte in position b
-            fprintf(outfile, "DEL%u", e->pos);
-            //printf("Delete %c", e->arg1);
-            break;
-        }
-        case SUBSTITUTION:
-        {
-            // ADDnb - add byte n in position b
-            fprintf(outfile, "SET%u%c", e->pos, e->arg1);
-            //printf("Substitute %c for %c", e->arg2, e->arg1);
-            break;
-        }
-        default:
-            return;
-    }
-}
 
 int manhattanDistance(int x1, int y1, int x2, int y2)
 {
@@ -180,12 +138,21 @@ int up_cell_idx(int i, int j, int n, int m, int idx) // todo
 }
 
 // todo rivedere n, m
-int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, int n)
+int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n)
 {
     if (m < n)
     {
-        return levenshtein_matrix_calculate(script, str2, n, str1, m);
+        return levenshtein_create_script(script, str2, n, str1, m);
     }
+
+    //FILE* tmp = tmpfile();
+    //if (tmp == NULL)
+    //{
+    //    perror("Unable to create temp file");
+    //    return -1;
+    //}
+
+
     int idx = 0;
 
     // calcola il numero di celle valide
@@ -248,20 +215,20 @@ int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, in
                 scriptR[idx].pos   = i - 1;
                 if (best == del)
                 {
-                    scriptR[idx].type = DELETION;
+                    scriptR[idx].type = DEL;
                     scriptR[idx].prev = &scriptR[0];//&scriptR[left_cell_idx(i, j, n, m, idx)];
 
                 }
                 else if (best == ins)
                 {
-                    scriptR[idx].type = INSERTION;
+                    scriptR[idx].type = INS;
                     scriptR[idx].prev =  &scriptR[0];//&scriptR[up_cell_idx(i, j, n, m, idx)];
                 }
                 else
                 {
                     if (substitution_cost > 0)
                     {
-                        scriptR[idx].type = SUBSTITUTION;
+                        scriptR[idx].type = SET;
                     }
                     else
                     {
@@ -321,7 +288,7 @@ int levenshtein_distance(char* str1, char* str2, edit** script)
 //
     //* Main algorithm */
     edit* ss = NULL;
-    distance = levenshtein_matrix_calculate(ss, str1, len1, str2, len2);
+    distance = levenshtein_create_script(ss, str1, len1, str2, len2);
 
     /* Read back the edit script */
     *script = malloc(distance * sizeof(edit));
@@ -349,5 +316,95 @@ int levenshtein_distance(char* str1, char* str2, edit** script)
     }// dealloca la matricefree(mat);
 
     return distance;
+}
+
+
+void print_edit(edit* e, FILE* outfile)
+{
+    if (outfile == NULL )
+    {
+        return; // error?
+    }
+
+    if (e == NULL)
+    {
+        return; // error?
+    }
+
+    uint32_t n = 0;
+    char b = 0;
+
+    switch (e->type)
+    {
+        case INS:
+        {
+            // ADDnb - add byte n in position b
+            fprintf(outfile, "ADD%u%c", e->pos, e->arg2);
+            //printf("Insert %c", e->arg2);
+            break;
+        }
+        case DEL:
+        {
+            // DELnb - delete byte in position b
+            fprintf(outfile, "DEL%u", e->pos);
+            //printf("Delete %c", e->arg1);
+            break;
+        }
+        case SET:
+        {
+            // SETnb - set byte n in position b
+            fprintf(outfile, "SET%u%c", e->pos, e->arg1);
+            //printf("Substitute %c for %c", e->arg2, e->arg1);
+            break;
+        }
+        default:
+            return;
+    }
+}
+
+void save_file_script(edit** script, size_t len, char* outfile)
+{
+    FILE* out = fopen(outfile, "w+");
+    if (!out)
+    {
+        perror("Can't open outfile\n");
+        return;
+    }
+
+    for (int i = 0; i < len; i++)
+    {
+        print_edit(script[i], out);
+    }
+
+    fclose(out);
+}
+
+int file_distance_script(char* file1, char* file2, char* outfile)
+{
+    char* buff1;
+    char* buff2;
+
+    int size1 = 0;
+    int size2 = 0;
+
+    size1 = load_file(file1, &buff1);
+    size2 = load_file(file2, &buff2);
+
+    if (size1 < 0 || size2 < 0 || buff1 == NULL || buff2 == NULL)
+    {
+        // todo improve
+        return -1;
+    }
+
+    edit** script = NULL;
+    int len = levenshtein_create_script(script, buff1, size1, buff2, size2);
+
+    save_file_script(script, len, outfile);
+
+    free(buff1);
+    free(buff2);
+
+    return 0;
+
 }
 

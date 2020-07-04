@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-int levdistOpt(char* str1, size_t len1, char* str2, size_t len2);
+int lev_dist(char* str1, size_t len1, char* str2, size_t len2);
 
 
 

@@ -23,9 +23,9 @@
 typedef enum
 {
     NONE,
-    DELETION,
-    SUBSTITUTION,
-    INSERTION
+    DEL,
+    SET,
+    INS
 } edit_type;
 
 typedef struct _edit
@@ -40,9 +40,11 @@ typedef struct _edit
 
 void print_edit(edit* e, FILE* outfile);
 
-int file_distance(char* file1, char* file2);
+int file_distance(const char* file1, const char* file2);
 
 int levenshtein_distance(char* str1, char* str2, edit** script);
-int levenshtein_matrix_calculate(edit* script, char* str1, int m, char* str2, int n);
+int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n);
+
+int file_distance_script(char* file1, char* file2, char* outfile);
 
 #endif // FILEDISTANCE_SCRIPT_H
