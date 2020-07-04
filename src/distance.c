@@ -22,28 +22,37 @@
 
 #define BUFSIZE 256
 
-int levenshtein_dist(char* x, size_t m, char* y, size_t n)
+int levenshtein_dist(char* str1, size_t len1, char* str2, size_t len2)
 {
-    if (m < n)
+    if (len1 < len2)
     {
-        return levenshtein_dist(y, n, x, m);
+        return levenshtein_dist(str2, len2, str1, len1);
     }
     int distance = 0;
 
-    int *prev = malloc((n + 1) * sizeof(int));
-    int *curr = malloc((n + 1) * sizeof(int));
-    int *tmp = 0;
+    int* prev = malloc((len2 + 1) * sizeof(int));
+    int* curr = malloc((len2 + 1) * sizeof(int));
+    int* tmp = NULL;
 
-    for(int i = 0; i <= n; i++)
+    for (int i = 0; i <= len2; i++)
+    {
         prev[i] = i;
+    }
 
-    for(int i = 1; i <= m; i++) {
+    for (int i = 1; i <= len1; i++)
+    {
         curr[0] = i;
-        for(int j = 1; j <= n; j++) {
-            if(x[i - 1] != y[j - 1]) {
-                int k = minmin(curr[j - 1], prev[j - 1], prev[j]);
+
+        for (int j = 1; j <= len2; j++)
+        {
+            if (str1[i - 1] != str2[j - 1]) {
+                int k = minmin(curr[j - 1],
+                               prev[j - 1],
+                                  prev[j]);
                 curr[j] = k + 1;
-            } else {
+            }
+            else
+            {
                 curr[j] = prev[j - 1];
             }
         }
@@ -52,10 +61,10 @@ int levenshtein_dist(char* x, size_t m, char* y, size_t n)
         prev = curr;
         curr = tmp;
 
-        memset((void*) curr, 0, sizeof(int) * (n + 1));
+        memset((void*) curr, 0, sizeof(int) * (len2 + 1));
     }
 
-    distance = prev[n];
+    distance = prev[len2];
 
     free(curr);
     free(prev);
