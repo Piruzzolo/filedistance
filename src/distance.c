@@ -96,8 +96,8 @@ int levenshtein_file_distance(char* file1, char* file2)
         return -1;
     }
 
-    fclose(f1);
-    fclose(f2);
+    if (f1) fclose(f1);
+    if (f2) fclose(f2);
 
     return dist;
 
