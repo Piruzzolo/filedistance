@@ -45,7 +45,8 @@ int levenshtein_dist(char* str1, size_t len1, char* str2, size_t len2)
 
         for (int j = 1; j <= len2; j++)
         {
-            if (str1[i - 1] != str2[j - 1]) {
+            if (str1[i - 1] != str2[j - 1])
+            {
                 int k = minmin(curr[j - 1],
                                prev[j - 1],
                                   prev[j]);
