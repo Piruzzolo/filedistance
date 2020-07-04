@@ -22,30 +22,28 @@
 
 #define BUFSIZE 256
 
-int levenshtein_dist(const char* x, size_t m, const char* y, size_t n)
+int levenshtein_dist(char* x, size_t m, char* y, size_t n)
 {
-    int distance;
+    if (m < n)
+    {
+        return levenshtein_dist(y, n, x, m);
+    }
+    int distance = 0;
 
-    int* prev = malloc((n + 1) * sizeof(int));
-    int* curr = malloc((n + 1) * sizeof(int));
-    int* tmp = 0;
+    int *prev = malloc((n + 1) * sizeof(int));
+    int *curr = malloc((n + 1) * sizeof(int));
+    int *tmp = 0;
 
     for(int i = 0; i <= n; i++)
         prev[i] = i;
 
-    for(int i = 1; i <= m; i++)
-    {
+    for(int i = 1; i <= m; i++) {
         curr[0] = i;
-
-        for(int j = 1; j <= n; j++)
-        {
-            if(x[i - 1] != y[j - 1])
-            {
+        for(int j = 1; j <= n; j++) {
+            if(x[i - 1] != y[j - 1]) {
                 int k = minmin(curr[j - 1], prev[j - 1], prev[j]);
                 curr[j] = k + 1;
-            }
-            else
-            {
+            } else {
                 curr[j] = prev[j - 1];
             }
         }
@@ -66,7 +64,7 @@ int levenshtein_dist(const char* x, size_t m, const char* y, size_t n)
 }
 
 
-int levenshtein_file_distance(const char* file1, const char* file2)
+int levenshtein_file_distance(char* file1, char* file2)
 {
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
