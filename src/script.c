@@ -295,6 +295,10 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
         return -1;
     }
 
+    printf("Distance: %d\n", dist);
+
+    printf("Edit script saved successfully: %s\n", file2);
+
     if (f1) fclose(f1);
     if (f2) fclose(f2);
     if (out) fclose(out);
