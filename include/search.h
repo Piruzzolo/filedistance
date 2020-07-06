@@ -27,19 +27,8 @@ typedef struct _FilenameDistance
     char filename[PATH_MAX];
 } FilenameDistance;
 
+int search_all(FILE* inputfile, DIR* dir, int limit);
 
-char** search(FILE* inputfile, DIR* dir);
-
-
-char** searchLimit(FILE* inputfile, DIR* dir, int limit);
-
-int search_min(char* filename, char* dir);
-
-
-
-
-
-
-
+int search_min(const char* filename, const char* dir);
 
 #endif //UNTITLED_SEARCH_H

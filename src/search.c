@@ -33,29 +33,32 @@
 #endif
 
 char* inputFile;
-static node* list = NULL;
+node* list = NULL;
 FilenameDistance* fdList = NULL;
 
 int print_callback(const char *fname, const struct stat *st, int type)
 {
+    // if not normal file, return
     if (type != FTW_F)
         return 0;
 
     int distance = levenshtein_file_distance(fname, inputFile);
+    if (distance < 0)
+    {
+        return -1;
+    }
 
     FilenameDistance* fd = (FilenameDistance*) malloc(sizeof(FilenameDistance));
     if (!fd)
     {
-        // todo errore
         return -1;
     }
 
     fd->distance = distance;
 
-    // copia e rileva il troncamento
+    // copy & detect truncation
     if (strlcpy(fd->filename, fname, sizeof(fd->filename)) >= sizeof(fd->filename))
     {
-        // todo errore?
         return -1;
     }
 
@@ -71,7 +74,7 @@ int print_callback(const char *fname, const struct stat *st, int type)
     return 0;
 }
 
-void printNode(node* node)
+void print_node(node* node)
 {
     FilenameDistance* fd = ((FilenameDistance*) node->data);
 
@@ -90,24 +93,44 @@ void saveArray(node* node)
 
 }
 
-int search_min(char* f, char* dir)
+int search_min(const char* f, const char* dir)
 {
     if (f == NULL || dir == NULL)
     {
+        //perror ...
         return -1;
     }
 
     inputFile = f;
 
     // dir traversal, 8 dir aperte max
-    ftw(dir, print_callback, 8);
+    int res = ftw(dir, print_callback, 8);
+    if (!res) return -1;
 
-    traverse(list, (callback_t) printNode);
+    traverse(list, (callback_t) print_node);
+
+    return 0;
+}
+
+int search_all(FILE* inputfile, DIR* dir, int limit)
+{
+    if (inputfile == NULL || dir == NULL)
+    {
+        // some error
+        return NULL;
+    }
+
+    //inputFile = f;
+
+    // dir traversal, 8 dir aperte max
+    ftw(dir, print_callback, 8);
+    static node* list = NULL;
+    traverse(list, (callback_t) print_node);
 
     int num = count(list);
     if (num > 0)
     {
-       fdList = (FilenameDistance*) malloc(num * sizeof(FilenameDistance));
+        fdList = (FilenameDistance*) malloc(num * sizeof(FilenameDistance));
     }
 
     // callback c = saveArray;
@@ -116,5 +139,3 @@ int search_min(char* f, char* dir)
     return 0;
 
 }
-
-char** searchAll(FILE* inputfile, DIR* dir, int limit);

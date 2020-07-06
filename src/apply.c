@@ -16,8 +16,12 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "../include/script.h"
+#include "../include/list.h"
+
+// node* list = NULL;
 
 _Bool try_parse_ADD(edit *pEdit, char* buffer)
 {
@@ -34,7 +38,7 @@ _Bool try_parse_SET(edit *pEdit, char* buffer)
     return 0;
 }
 
-int apply(char* infile, char* scriptfile, char* outfile)
+int apply(const char* infile, const char* scriptfile, const char* outfile)
 {
     if (infile == NULL || scriptfile == NULL || outfile == NULL)
     {
@@ -60,35 +64,39 @@ int apply(char* infile, char* scriptfile, char* outfile)
         return -1;
     }
 
-    unsigned char buffer[4096];
-    size_t sz = 0;
+    char opcode[4];
+    opcode[3] = '\0';
 
-    while ((sz = fread(buffer, 1, sizeof(buffer), script)) > 0)
+    int read = fscanf(script, "%3s", opcode);
+    if (!read)
     {
-        edit got;
-
-        if (try_parse_ADD(&got, buffer))
-        {
-
-        }
-        else if (try_parse_DEL(&got, buffer))
-        {
-
-        }
-        else if (try_parse_SET(&got, buffer))
-        {
-
-        }
-        else
-        {
-
-        }
+        //error...
     }
 
+    if (strcmp(opcode, "ADD") == 0)
+    {
+        unsigned int n = 0;
+        char b = 0;
+        if (fscanf(script, "%ui", &n)) // check
+        {
 
+            if (fscanf(script, "%c", &b))
+            {
 
+            }
+        }
+    }
+    else if (strcmp(opcode, "DEL") == 0)
+    {
+        fread(opcode, 1, 1, script); // todo
+    }
+    else if (strcmp(opcode, "SET") == 0)
+    {
 
-
+    } else
+    {
+        // error
+    }
 
     fclose(in);
     fclose(script);

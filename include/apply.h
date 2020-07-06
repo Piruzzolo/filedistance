@@ -23,6 +23,6 @@
 /**
  * @brief Applies the edit operations in file scriptfile to infile, writing the result to outfile
  */
-int apply(FILE* infile, FILE* scriptfile, FILE* outfile);
+int apply(const char* infile, const char* scriptfile, const char* outfile);
 
 #endif // APPLY_H

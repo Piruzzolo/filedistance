@@ -26,7 +26,7 @@ typedef enum
     NONE,
     DEL,
     SET,
-    INS
+    ADD
 } edit_type;
 
 typedef struct _edit

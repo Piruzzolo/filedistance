@@ -59,8 +59,10 @@ node* append(node* head, void* data)
         return NULL;
     /* go to the last node */
     node *cursor = head;
-    while(cursor->next != NULL)
+    while (cursor->next != NULL)
+    {
         cursor = cursor->next;
+    }
 
     /* create a new node */
     node* new_node = create(data,NULL);
@@ -134,7 +136,7 @@ node* insert_before(node *head, void* data, node* nxt)
 void traverse(node* head, callback_t f)
 {
     node* cursor = head;
-    while(cursor != NULL)
+    while (cursor != NULL)
     {
         f(cursor);
         cursor = cursor->next;

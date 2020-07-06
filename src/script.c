@@ -17,7 +17,6 @@
 
 #include <stdlib.h> // malloc, free
 #include <string.h>
-#include <stdint.h>
 
 #include "../include/script.h"
 #include "../include/util.h"
@@ -52,310 +51,37 @@ int count_valid_cells(int m, int n)
     return count;
 }
 
-void clear_edit_array(edit *array, int size)
-{
-    memset((void*) array, 0, (size)*sizeof(edit));
-}
-
-void init_initial(edit *array, int len)
-{
-    for (int i = 0; i <= len; i++)
-    {
-        array[i].score = i;
-        array[i].prev = NULL;
-        array[i].arg1 = 0;
-        array[i].arg2 = 0;
-    }
-}
-
-
-int left_cell_idx(int i, int j, int n, int m, int idx) // todo
-{
-    // controllo se la cella vicina è valida o è fuori dalla matrice
-    if (j-1 < 0)
-    {
-        return -1;
-    }
-    if (isOutCell(i, j-1, n, m))
-    {
-        return -1;
-    }
-
-    return idx - 1;
-}
-
-int up_left_cell_idx(int i, int j, int n, int m, int idx) // todo
-{
-    // controllo se la cella sopra a sinistra è valida o è fuori dalla matrice
-    if (j-1 < 0 || i-1 < 0)
-    {
-        return -1;
-    }
-    if (isOutCell(i-1, j-1, n, m))
-    {
-        return -1;
-    }
-
-    return idx - 1;
-}
-
-int up_cell_idx(int i, int j, int n, int m, int idx) // todo
-{
-    // controllo se la cella sopra è valida o è fuori dalla matrice
-    if (j-1 < 0)
-    {
-        return -1;
-    }
-    if (isOutCell(i, j-1, n, m))
-    {
-        return -1;
-    }
-
-    // controllo la cella sopra a destra
-    if (j+1 > m)
-    {
-
-    }
-
-    if (isOutCell(i-1, j+1, n, m))
-    {
-
-    }
-    int cnt = 0;
-    int currI = i-1;
-    int currJ = j;
-
-    do
-    {
-        cnt++;
-        if (isOutCell(currI, currJ, n, m))
-        {
-
-        }
-        currI++;
-        currJ++;
-    } while (currI == i && currJ == j);
-
-}
-
-// todo rivedere n, m
-int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n)
-{
-    if (m < n)
-    {
-        return levenshtein_create_script(script, str2, n, str1, m);
-    }
-
-    //FILE* tmp = tmpfile();
-    //if (tmp == NULL)
-    //{
-    //    perror("Unable to create temp file");
-    //    return -1;
-    //}
-
-
-    int idx = 0;
-
-    // calcola il numero di celle valide
-    int numValidCells = count_valid_cells(m, n);
-
-    // alloca l'array script_r (lungo al più numValidCells + 1)
-    // verrà letto a ritroso fino al primo elemento non nullo
-    int numElemsScript_r = numValidCells + 1;
-    edit* scriptR = (edit*) malloc((numValidCells + 1)*sizeof(edit));
-
-    // azzera lo script
-    clear_edit_array(scriptR, numElemsScript_r);
-
-    /*
-      crea i due array riga sopra e colonna a sinistra
-      verranno riempiti nel ciclo in base all'elemento corrente
-     */
-
-    // all'inizio rowAbove è vuoto (non c'è nessuna riga sopra)
-    edit* rowAbove = (edit*) malloc((n+1)*sizeof(edit));
-    //clear_edit_array(rowAbove, m);
-    init_initial(rowAbove, n);
-
-    // alloco la riga di lavoro; verra swappata con la riga sopra
-
-    edit* current = (edit*) malloc((n+1)*sizeof(edit));
-    //clear_edit_array(current, m);
-
-    edit left = {.score = 0,
-                 .arg1 = 0,
-                 .arg2 = 0,
-                 .prev = NULL};
-
-    unsigned int substitution_cost = 0;
-    unsigned int del = 0, ins = 0, subst = 0;
-    unsigned int best = 0;
-
-    for (int i = 1; i <= m; i++)
-    {
-        for (int j = 1; j <= n; j++)
-        {
-            substitution_cost = str1[i - 1] == str2[j - 1] ? 0 : 1;
-
-            del   = rowAbove[j].score + 1;                       /* deletion */
-            ins   = left.score + 1;                              /* insertion */
-            subst = rowAbove[j - 1].score + substitution_cost;   /* substitution */
-
-            best = minmin(del, ins, subst);
-
-            current[j].score = best;
-            current[j].arg1 = str1[i - 1];
-            current[j].arg2 = str2[j - 1];
-            current[j].pos = i - 1;
-
-            if (!isOutCell(i, j, n, m) && idx+1 <= numValidCells)
-            {
-                scriptR[idx].score = best;
-                scriptR[idx].arg1  = str1[i - 1];
-                scriptR[idx].arg2  = str2[j - 1];
-                scriptR[idx].pos   = i - 1;
-                if (best == del)
-                {
-                    scriptR[idx].type = DEL;
-                    scriptR[idx].prev = &scriptR[0];//&scriptR[left_cell_idx(i, j, n, m, idx)];
-
-                }
-                else if (best == ins)
-                {
-                    scriptR[idx].type = INS;
-                    scriptR[idx].prev =  &scriptR[0];//&scriptR[up_cell_idx(i, j, n, m, idx)];
-                }
-                else
-                {
-                    if (substitution_cost > 0)
-                    {
-                        scriptR[idx].type = SET;
-                    }
-                    else
-                    {
-                        scriptR[idx].type = NONE;
-                    }
-
-                    scriptR[idx].prev = &scriptR[0];//&scriptR[up_left_cell_idx(i, j, n, m, idx)];
-                }
-                idx++;
-            }
-
-            left = current[j];
-
-        }
-
-        swap_array_edit(rowAbove, current, m);
-        clear_edit_array(current, n);
-
-    }
-
-    free(rowAbove);
-    free(current);
-
-    return best;
-}
-
-
-int levenshtein_distance(char* str1, char* str2, edit** script)
-{
-    int len1 = strlen(str1), len2 = strlen(str2);
-    int i = 0;
-    int distance = 0;
-    edit** mat;
-
-    edit* head;
-
-    /* If either string is empty, the distance is the other string's length */
-    if (len1 == 0)
-    {
-        return len2;
-    }
-
-    if (len2 == 0)
-    {
-        return len1;
-    }
-
-    /* Initialise the matrix */
-    //mat = levenshtein_matrix_create(len1, len2);
-//
-    //if (!mat) {
-    //    *script = NULL;
-    //    return 0;
-    //}
-//
-    //initFlagsMatrix(len1, len2);
-//
-    //* Main algorithm */
-    edit* ss = NULL;
-    distance = levenshtein_create_script(ss, str1, len1, str2, len2);
-
-    /* Read back the edit script */
-    *script = malloc(distance * sizeof(edit));
-    if (! *script )
-    {
-        distance = 0;
-    }
-    else
-    {
-            i = distance - 1;
-            for (head = &mat[len1][len2]; head->prev != NULL; head = head->prev)
-                {
-                    if (head->type == NONE)
-                            continue;
-
-                            memcpy(*script + i, head, sizeof(edit));
-                    i--;
-                }
-        }
-
-            // dealloca gli elementi
-            for (i = 0; i <= len1; i++)
-        {
-            free(mat[i]);
-    }// dealloca la matricefree(mat);
-
-    return distance;
-}
-
 
 void print_edit(const edit* e, FILE* outfile)
 {
-    if (outfile == NULL )
-    {
-        return; // error?
-    }
-
-    if (e == NULL)
-    {
-        return; // error?
-    }
-
-    uint32_t n = 0;
-    char b = 0;
-
     switch (e->type)
     {
-        case INS:
+        case ADD:
         {
-            // ADDnb - add byte n in position b
-            fprintf(outfile, "ADD%u%c", e->pos, e->arg2);
-            //printf("Insert %c", e->arg2);
+            const char op[] = "ADD";
+            unsigned int n = e->pos;
+            char b = e->arg2;
+            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(&n, 4, 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
         case DEL:
         {
-            // DELnb - delete byte in position b
-            fprintf(outfile, "DEL%u", e->pos);
-            //printf("Delete %c", e->arg1);
+            const char op[] = "DEL";
+            unsigned int n = e->pos;
+            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(&n, 4, 1, outfile);
             break;
         }
         case SET:
         {
-            // SETnb - set byte n in position b
-            fprintf(outfile, "SET%u%c", e->pos, e->arg1);
-            //printf("Substitute %c for %c", e->arg2, e->arg1);
+            char op[] = "SET";
+            unsigned int n = e->pos;
+            char b = e->arg2;
+            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(&n, 4, 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
         default:
@@ -363,42 +89,202 @@ void print_edit(const edit* e, FILE* outfile)
     }
 }
 
-void save_file_script(const edit** script, size_t len, const char* outfile)
+
+unsigned int levenshtein_matrix_calculate(edit** mat, const char* str1, size_t len1, const char *str2, size_t len2)
 {
-    FILE* out = fopen(outfile, "w+");
-    if (!out)
+    unsigned int i, j;
+    for (j = 1; j <= len2; j++)
     {
-        perror("Can't open outfile\n");
-        return;
+        for (i = 1; i <= len1; i++)
+        {
+            unsigned int substitution_cost;
+            unsigned int del = 0, ins = 0, subst = 0;
+            unsigned int best;
+
+            if (str1[i - 1] == str2[j - 1])
+            {
+                substitution_cost = 0;
+            }
+            else
+            {
+                substitution_cost = 1;
+            }
+
+            del = mat[i - 1][j].score + 1; /* deletion */
+            ins = mat[i][j - 1].score + 1; /* insertion */
+            subst = mat[i - 1][j - 1].score + substitution_cost; /* substitution */
+
+            best = minmin(del, ins, subst);
+
+            mat[i][j].score = best;
+            mat[i][j].arg1 = str1[i - 1];
+            mat[i][j].arg2 = str2[j - 1];
+            mat[i][j].pos = i - 1;
+
+            if (best == del)
+            {
+                mat[i][j].type = DEL;
+                mat[i][j].prev = &mat[i - 1][j];
+            }
+            else if (best == ins)
+            {
+                mat[i][j].type = ADD;
+                mat[i][j].prev = &mat[i][j - 1];
+            }
+            else
+            {
+                if (substitution_cost > 0)
+                {
+                    mat[i][j].type = SET;
+                }
+                else
+                {
+                    mat[i][j].type = NONE;
+                }
+                mat[i][j].prev = &mat[i - 1][j - 1];
+            }
+        }
     }
 
-    for (int i = 0; i < len; i++)
-    {
-        print_edit(script[i], out);
-    }
-
-    fclose(out);
+    return mat[len1][len2].score;
 }
 
-int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile) // todo
+edit** levenshtein_matrix_create(size_t len1, size_t len2)
+{
+    unsigned int i, j;
+    edit** mat = malloc((len1 + 1) * sizeof(edit*));
+    if (mat == NULL)
+    {
+        return NULL;
+    }
+    for (i = 0; i <= len1; i++)
+    {
+        mat[i] = malloc((len2 + 1) * sizeof(edit));
+        if (mat[i] == NULL)
+        {
+            for (j = 0; j < i; j++)
+            {
+                free(mat[j]);
+            }
+
+            free(mat);
+            return NULL;
+        }
+    }
+    for (i = 0; i <= len1; i++)
+    {
+        mat[i][0].score = i;
+        mat[i][0].prev = NULL;
+        mat[i][0].arg1 = 0;
+        mat[i][0].arg2 = 0;
+    }
+
+    for (j = 0; j <= len2; j++)
+    {
+        mat[0][j].score = j;
+        mat[0][j].prev = NULL;
+        mat[0][j].arg1 = 0;
+        mat[0][j].arg2 = 0;
+    }
+    return mat;
+}
+
+int levenshtein_distance_script(const char* str1, size_t len1, const char* str2, size_t len2, edit** script)
+{
+    unsigned int distance;
+
+    edit** mat = NULL;
+    edit* head = NULL;
+
+    /* If either string is empty, the distance is the other string's length */
+    if (len1 == 0)
+    {
+        return len2;
+    }
+    if (len2 == 0)
+    {
+        return len1;
+    }
+    /* Initialise the matrix */
+    mat = levenshtein_matrix_create(len1, len2);
+    if (!mat)
+    {
+        *script = NULL;
+        return 0;
+    }
+    /* Main algorithm */
+    distance = levenshtein_matrix_calculate(mat, str1, len1, str2, len2);
+    /* Read back the edit script */
+    *script = malloc(distance * sizeof(edit));
+
+    if (*script)
+    {
+        unsigned int i = distance - 1;
+        for (head = &mat[len1][len2]; head->prev != NULL; head = head->prev)
+        {
+            if (head->type != NONE)
+            {
+                memcpy(*script + i, head, sizeof(edit));
+                i--;
+            }
+        }
+    }
+    else
+    {
+        distance = 0;
+    }
+
+    /* Clean up */
+    for (int i = 0; i <= len1; i++)
+    {
+
+        free(mat[i]);
+    }
+
+    free(mat);
+
+    return distance;
+}
+
+
+void append_script_file(FILE* file, edit* script, size_t len)
+{
+    for (int i = 0; i < len; i++)
+    {
+        print_edit(&script[i], file);
+    }
+}
+
+int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
 {
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
-
-    //FILE* tmp = tmpfile();
-
-    int dist = 0;
+    FILE* out = fopen(outfile, "w+");
 
     char buffer1[BUFSIZE];
     char buffer2[BUFSIZE];
 
-    edit** script = NULL;
+    edit* script = NULL;
+
+    int dist = 0;
 
     if (f1 != NULL && f2 != NULL)
     {
         while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
         {
-            dist += levenshtein_create_script(script, buffer1, strlen(buffer1), buffer2, strlen(buffer2));
+            int distance = 0;
+
+            if (strlen(buffer1) < strlen(buffer2))
+            {
+                distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
+            }
+            else
+            {
+                distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
+            }
+
+            append_script_file(out, script, distance);
+            dist += distance;
         }
     }
     else
@@ -406,16 +292,11 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
         return -1;
     }
 
+    if (f1) fclose(f1);
+    if (f2) fclose(f2);
+    if (out) fclose(out);
 
-
-    fclose(f1);
-    fclose(f2);
-
-    return dist;
-
-    //int len = levenshtein_create_script(script, buff1, size1, buff2, size2);
-//
-    //save_file_script(script, len, outfile);
+    return 0;
 
 }
 
