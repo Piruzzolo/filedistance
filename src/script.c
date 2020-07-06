@@ -154,18 +154,17 @@ unsigned int levenshtein_matrix_calculate(edit** mat, const char* str1, size_t l
 
 edit** levenshtein_matrix_create(size_t len1, size_t len2)
 {
-    unsigned int i, j;
     edit** mat = malloc((len1 + 1) * sizeof(edit*));
     if (mat == NULL)
     {
         return NULL;
     }
-    for (i = 0; i <= len1; i++)
+    for (int i = 0; i <= len1; i++)
     {
         mat[i] = malloc((len2 + 1) * sizeof(edit));
         if (mat[i] == NULL)
         {
-            for (j = 0; j < i; j++)
+            for (int j = 0; j < i; j++)
             {
                 free(mat[j]);
             }
@@ -174,7 +173,7 @@ edit** levenshtein_matrix_create(size_t len1, size_t len2)
             return NULL;
         }
     }
-    for (i = 0; i <= len1; i++)
+    for (int i = 0; i <= len1; i++)
     {
         mat[i][0].score = i;
         mat[i][0].prev = NULL;
@@ -182,13 +181,14 @@ edit** levenshtein_matrix_create(size_t len1, size_t len2)
         mat[i][0].arg2 = 0;
     }
 
-    for (j = 0; j <= len2; j++)
+    for (int j = 0; j <= len2; j++)
     {
         mat[0][j].score = j;
         mat[0][j].prev = NULL;
         mat[0][j].arg1 = 0;
         mat[0][j].arg2 = 0;
     }
+
     return mat;
 }
 
@@ -240,7 +240,6 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     /* Clean up */
     for (int i = 0; i <= len1; i++)
     {
-
         free(mat[i]);
     }
 
