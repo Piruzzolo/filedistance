@@ -97,6 +97,9 @@ unsigned int levenshtein_matrix_calculate(edit** mat, const char* str1, size_t l
     {
         for (i = 1; i <= len1; i++)
         {
+            //if (isOutCell(j, i, len2, len1))
+            //    continue;
+
             unsigned int substitution_cost;
             unsigned int del = 0, ins = 0, subst = 0;
             unsigned int best;
