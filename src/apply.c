@@ -30,23 +30,76 @@
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
 
-_Bool parse_ADD(char* buffer, edit* result)
+u_int32_t bytes_to_uint32(unsigned char* buf)
 {
-    if (strncmp(buffer, "ADD", 3) == 0)
-    {
+    return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+}
 
+_Bool parse_ADD(FILE* file, edit* result)
+{
+    edit* tmp = (edit*) malloc(sizeof(edit));
+    if (result == NULL || !tmp)
+    {
+        return false;
+    }
+
+    char buf[MAX_SIZE_ITEM];
+    fread(buf, MAX_SIZE_ITEM, 1, file);
+    if (strncmp(buf, "ADD", 3) == 0)
+    {
+        tmp->operation = ADD;
+        tmp->pos = bytes_to_uint32(&buf[3]);
+        tmp->arg2 = buf[MAX_SIZE_ITEM-1];
+
+        result = tmp;
+        return true;
     }
     return false;
 }
 
-_Bool parse_DEL(char* buffer, edit* result)
+_Bool parse_DEL(FILE* file, edit* result)
 {
-    return 0;
+    edit* tmp = (edit*) malloc(sizeof(edit));
+    if (result == NULL || !tmp)
+    {
+        return false;
+    }
+
+    char buf[MAX_SIZE_ITEM - 1];
+    fread(buf, MAX_SIZE_ITEM - 1, 1, file);
+    if (strncmp(buf, "DEL", 3) == 0)
+    {
+        tmp->operation = DEL;
+        tmp->pos = bytes_to_uint32(buf + 3);
+
+        result = tmp;
+        return true;
+    }
+
+    return false;
 }
 
-_Bool parse_SET(char* buffer, edit* result)
+_Bool parse_SET(FILE* file, edit* result)
 {
-    return 0;
+    edit* tmp = (edit*) malloc(sizeof(edit));
+    if (result == NULL || !tmp)
+    {
+        return false;
+    }
+
+    char buf[MAX_SIZE_ITEM];
+    fread(buf, MAX_SIZE_ITEM, 1, file);
+    if (strncmp(buf, "SET", 3) == 0)
+    {
+        tmp->operation = ADD;
+        tmp->pos = bytes_to_uint32(&buf[3]);
+        tmp->arg2 = buf[MAX_SIZE_ITEM-1];
+
+        result = tmp;
+        return true;
+    }
+
+    return false;
 }
 
 _Bool apply_ADD(FILE* out, edit* toApply)
@@ -102,7 +155,7 @@ int apply(const char* infile, const char* filem, const char* outfile)
     {
         edit todo;
 
-        if (strlen(buf) == MAX_SIZE_ITEM)
+        if (strlen(buf) == MAX_SIZE_ITEM) // TODO reformat into list of edits
         {
             if (parse_ADD(buf, &todo))
             {
@@ -129,6 +182,19 @@ int apply(const char* infile, const char* filem, const char* outfile)
             // vedere
         }
     }
+
+    node* list = NULL;
+
+    while (list->next)
+    {
+
+    }
+
+
+
+
+
+
 
     if (in)         fclose(in);
     if (scriptfile) fclose(scriptfile);
