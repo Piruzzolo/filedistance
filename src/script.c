@@ -54,7 +54,7 @@ int count_valid_cells(int m, int n)
 
 void print_edit(const edit* e, FILE* outfile)
 {
-    switch (e->type)
+    switch (e->operation)
     {
         case ADD:
         {
@@ -126,23 +126,23 @@ unsigned int levenshtein_matrix_calculate(edit** mat, const char* str1, size_t l
 
             if (best == del)
             {
-                mat[i][j].type = DEL;
+                mat[i][j].operation = DEL;
                 mat[i][j].prev = &mat[i - 1][j];
             }
             else if (best == ins)
             {
-                mat[i][j].type = ADD;
+                mat[i][j].operation = ADD;
                 mat[i][j].prev = &mat[i][j - 1];
             }
             else
             {
                 if (substitution_cost > 0)
                 {
-                    mat[i][j].type = SET;
+                    mat[i][j].operation = SET;
                 }
                 else
                 {
-                    mat[i][j].type = NONE;
+                    mat[i][j].operation = NONE;
                 }
                 mat[i][j].prev = &mat[i - 1][j - 1];
             }
@@ -225,7 +225,7 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
         unsigned int i = distance - 1;
         for (head = &mat[len1][len2]; head->prev != NULL; head = head->prev)
         {
-            if (head->type != NONE)
+            if (head->operation != NONE)
             {
                 memcpy(*script + i, head, sizeof(edit));
                 i--;
@@ -272,7 +272,12 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
     if (f1 != NULL && f2 != NULL)
     {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
+        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2)) // todo replace with fread
+
+            //char buffer[16+1]; /*leaving room for '\0' */
+            //x = fread(buffer, sizeof(char), 16, stream);
+            //buffer[x]='\0'
+
         {
             int distance = 0;
 

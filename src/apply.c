@@ -20,33 +20,63 @@
 
 #include "../include/script.h"
 #include "../include/list.h"
+#include <stdbool.h>
 
-// node* list = NULL;
+// glibc doesn't have strlcpy
+#ifdef __GNU_LIBRARY__
+#include "../include/safe_str/strlcpy.h"
+#endif
 
-_Bool try_parse_ADD(edit *pEdit, char* buffer)
+#define BUFSIZE 256
+#define MAX_SIZE_ITEM 8
+
+_Bool parse_ADD(char* buffer, edit* result)
+{
+    if (strncmp(buffer, "ADD", 3) == 0)
+    {
+
+    }
+    return false;
+}
+
+_Bool parse_DEL(char* buffer, edit* result)
 {
     return 0;
 }
 
-_Bool try_parse_DEL(edit *pEdit, char* buffer)
+_Bool parse_SET(char* buffer, edit* result)
 {
     return 0;
 }
 
-_Bool try_parse_SET(edit *pEdit, char* buffer)
+_Bool apply_ADD(FILE* out, edit* toApply)
 {
-    return 0;
+    char b = toApply->arg2;
+    fputc(b, out);
 }
 
-int apply(const char* infile, const char* scriptfile, const char* outfile)
+_Bool apply_DEL(FILE* out, edit* toApply)
 {
-    if (infile == NULL || scriptfile == NULL || outfile == NULL)
+    fseek(out, -1, SEEK_CUR);
+}
+
+_Bool apply_SET(FILE* out, FILE* in, edit* toApply) // todo: ALL: check for EOF
+{
+    char b = toApply->arg2;
+    fseek(in, 1, SEEK_CUR);
+    fputc(b, out);
+    fseek(out, 1, SEEK_CUR);
+}
+
+int apply(const char* infile, const char* filem, const char* outfile)
+{
+    if (infile == NULL || filem == NULL || outfile == NULL)
     {
         return -1;
     }
 
     FILE* in  = fopen(infile, "r");
-    FILE* script = fopen(scriptfile, "r");
+    FILE* scriptfile = fopen(filem, "r");
     FILE* out = fopen(infile, "wb");
     if (in == NULL)
     {
@@ -64,42 +94,44 @@ int apply(const char* infile, const char* scriptfile, const char* outfile)
         return -1;
     }
 
-    char opcode[4];
-    opcode[3] = '\0';
+    _Bool res = 0;
 
-    int read = fscanf(script, "%3s", opcode);
-    if (!read)
-    {
-        //error...
-    }
+    char buf[MAX_SIZE_ITEM];
 
-    if (strcmp(opcode, "ADD") == 0)
+    while (fgets(buf, MAX_SIZE_ITEM, scriptfile))
     {
-        unsigned int n = 0;
-        char b = 0;
-        if (fscanf(script, "%ui", &n)) // check
+        edit todo;
+
+        if (strlen(buf) == MAX_SIZE_ITEM)
         {
-
-            if (fscanf(script, "%c", &b))
+            if (parse_ADD(buf, &todo))
             {
-
+                res &= apply_ADD(out, &todo);
             }
+            else if (parse_DEL(buf, &todo))
+            {
+                res &= apply_DEL(out, &todo);
+            }
+            else if (parse_SET(buf, &todo))
+            {
+                res &= apply_SET(out, in, &todo);
+            }
+            else
+            {
+                // vedere
+            }
+
+
+
+        }
+        else
+        {
+            // vedere
         }
     }
-    else if (strcmp(opcode, "DEL") == 0)
-    {
-        fread(opcode, 1, 1, script); // todo
-    }
-    else if (strcmp(opcode, "SET") == 0)
-    {
 
-    } else
-    {
-        // error
-    }
-
-    fclose(in);
-    fclose(script);
-    fclose(out);
+    if (in)         fclose(in);
+    if (scriptfile) fclose(scriptfile);
+    if (out)        fclose(out);
 
 }

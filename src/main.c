@@ -31,6 +31,7 @@
 #include "../include/distance.h"
 #include "../include/script.h"
 #include "../include/search.h"
+#include "../include/apply.h"
 
 
 static char abortMsg[] = "\nCTRL-C received. Stop.\n";
@@ -46,11 +47,11 @@ void abortHandler()
 
 void print(edit* e)
 {
-    if (e->type == ADD)
+    if (e->operation == ADD)
     {
         printf("Insert %c", e->arg2);
     }
-    else if (e->type == DEL)
+    else if (e->operation == DEL)
     {
         printf("Delete %c", e->arg1);
     }
