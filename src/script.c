@@ -20,6 +20,7 @@
 
 #include "../include/script.h"
 #include "../include/util.h"
+#include "../include/endianness.h"
 
 #define BUFSIZE 256
 
@@ -59,28 +60,28 @@ void print_edit(const edit* e, FILE* outfile)
         case ADD:
         {
             const char op[] = "ADD";
-            unsigned int n = e->pos;
+            unsigned int n = htonl(e->pos);
             char b = e->arg2;
             fwrite(op, sizeof(char), 3, outfile);
-            fwrite(&n, 4, 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
             fwrite(&b, 1, 1, outfile);
             break;
         }
         case DEL:
         {
             const char op[] = "DEL";
-            unsigned int n = e->pos;
+            unsigned int n = htonl(e->pos);
             fwrite(op, sizeof(char), 3, outfile);
-            fwrite(&n, 4, 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
             break;
         }
         case SET:
         {
             char op[] = "SET";
-            unsigned int n = e->pos;
+            unsigned int n = htonl(e->pos);
             char b = e->arg2;
             fwrite(op, sizeof(char), 3, outfile);
-            fwrite(&n, 4, 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
             fwrite(&b, 1, 1, outfile);
             break;
         }
@@ -301,7 +302,7 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
     printf("Distance: %d\n", dist);
 
-    printf("Edit script saved successfully: %s\n", file2);
+    printf("Edit script saved successfully: %s\n", outfile);
 
     if (f1) fclose(f1);
     if (f2) fclose(f2);

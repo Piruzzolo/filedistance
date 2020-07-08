@@ -33,5 +33,7 @@ void swap_array_edit(edit* a, edit* b, size_t n);
 
 void swap_array_int(int* a, int* b, size_t n);
 
+int filecpy(FILE * sourceFile, FILE * destFile);
+
 
 #endif // FILEDISTANCE_UTIL_H

@@ -5,7 +5,6 @@ set(CMAKE_C_STANDARD 11)
 #set(CMAKE_C_FLAGS "-O3 -flto -fwhole-program -march=native -Wall -Wextra")
 #set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
 
-
 add_executable(FileDistance
         src/main.c
         include/distance.h
@@ -22,4 +21,5 @@ add_executable(FileDistance
         src/list.c
 
         include/safe_str/strlcpy.h
-            src/safe_str/strlcpy.c)
+            src/safe_str/strlcpy.c
+        include/endianness.h)

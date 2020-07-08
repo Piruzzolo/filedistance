@@ -118,7 +118,7 @@ int main(int argc, char** argv)
         }
         else if (argc == 5)
         {
-            int ret = levenshtein_file_distance_script(argv[2], argv[3], argv[4]);
+            int ret = levenshtein_file_distance_script(argv[3], argv[2],argv[4]);
             if (ret == 0)
             {
                 exit(EXIT_SUCCESS);
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
     {
         if (argc == 5)
         {
-            //apply_edit_script(argv[2], argv[3], argv[4]);
+            apply_edit_script(argv[2], argv[3], argv[4]);
             exit(EXIT_SUCCESS);
         }
         else

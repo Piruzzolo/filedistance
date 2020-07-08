@@ -19,6 +19,31 @@
 #include <stdio.h>
 #include "../include/util.h"
 
+/**
+ * Copy file contents character by charcter from
+ * one file to another.
+ * It return total character copied count.
+ *
+ * @sourceFile  Pointer to source FILE.
+ * @destFile    Pointer to destination FILE.
+ */
+int filecpy(FILE * sourceFile, FILE * destFile)
+{
+    int  count = 0;
+    char ch;
+
+    /* Copy file contents character by character. */
+    while ((ch = fgetc(sourceFile)) != EOF)
+    {
+        fputc(ch, destFile);
+
+        /* Increment character copied count */
+        count++;
+    }
+
+    return count;
+}
+
 int load_file(char* filename, char** buffer)
 {
     int size = 0;

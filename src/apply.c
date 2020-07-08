@@ -17,10 +17,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../include/script.h"
 #include "../include/list.h"
-#include <stdbool.h>
+#include "../include/endianness.h"
 
 // glibc doesn't have strlcpy
 #ifdef __GNU_LIBRARY__
@@ -30,15 +31,15 @@
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
 
-u_int32_t bytes_to_uint32(unsigned char* buf)
+u_int32_t bytes_to_uint32(char* buf)
 {
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }
 
 _Bool parse_ADD(FILE* file, edit* result)
 {
-    edit* tmp = (edit*) malloc(sizeof(edit));
-    if (result == NULL || !tmp)
+    int p = ftell(file);
+    if (result == NULL)
     {
         return false;
     }
@@ -47,20 +48,21 @@ _Bool parse_ADD(FILE* file, edit* result)
     fread(buf, MAX_SIZE_ITEM, 1, file);
     if (strncmp(buf, "ADD", 3) == 0)
     {
-        tmp->operation = ADD;
-        tmp->pos = bytes_to_uint32(&buf[3]);
-        tmp->arg2 = buf[MAX_SIZE_ITEM-1];
+        result->operation = ADD;
+        result->pos = ntohl(bytes_to_uint32(&buf[3]));
+        result->arg2 = buf[MAX_SIZE_ITEM-1];
 
-        result = tmp;
         return true;
     }
+
+    fseek(file, p, SEEK_SET);
     return false;
 }
 
 _Bool parse_DEL(FILE* file, edit* result)
 {
-    edit* tmp = (edit*) malloc(sizeof(edit));
-    if (result == NULL || !tmp)
+    int p = ftell(file);
+    if (result == NULL)
     {
         return false;
     }
@@ -69,20 +71,20 @@ _Bool parse_DEL(FILE* file, edit* result)
     fread(buf, MAX_SIZE_ITEM - 1, 1, file);
     if (strncmp(buf, "DEL", 3) == 0)
     {
-        tmp->operation = DEL;
-        tmp->pos = bytes_to_uint32(buf + 3);
+        result->operation = DEL;
+        result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
-        result = tmp;
         return true;
     }
 
+    fseek(file, p, SEEK_SET);
     return false;
 }
 
 _Bool parse_SET(FILE* file, edit* result)
 {
-    edit* tmp = (edit*) malloc(sizeof(edit));
-    if (result == NULL || !tmp)
+    int p = ftell(file);
+    if (result == NULL)
     {
         return false;
     }
@@ -91,14 +93,14 @@ _Bool parse_SET(FILE* file, edit* result)
     fread(buf, MAX_SIZE_ITEM, 1, file);
     if (strncmp(buf, "SET", 3) == 0)
     {
-        tmp->operation = ADD;
-        tmp->pos = bytes_to_uint32(&buf[3]);
-        tmp->arg2 = buf[MAX_SIZE_ITEM-1];
+        result->operation = SET;
+        result->pos = ntohl(bytes_to_uint32(&buf[3]));
+        result->arg2 = buf[MAX_SIZE_ITEM-1];
 
-        result = tmp;
         return true;
     }
 
+    fseek(file, p, SEEK_SET);
     return false;
 }
 
@@ -118,10 +120,23 @@ _Bool apply_SET(FILE* out, FILE* in, edit* toApply) // todo: ALL: check for EOF
     char b = toApply->arg2;
     fseek(in, 1, SEEK_CUR);
     fputc(b, out);
-    fseek(out, 1, SEEK_CUR);
+    fflush(out);
 }
 
-int apply(const char* infile, const char* filem, const char* outfile)
+int file_copy(FILE* in, FILE* out, int len)
+{
+    char c;
+    for (int i = 0; i < len; i++)
+    {
+        c = getc(in);
+        if (c == EOF)
+            return -1;
+        putc(c, out);
+    }
+    return 0;
+}
+
+int apply_edit_script(const char* infile, const char* filem, const char* outfile)
 {
     if (infile == NULL || filem == NULL || outfile == NULL)
     {
@@ -130,7 +145,7 @@ int apply(const char* infile, const char* filem, const char* outfile)
 
     FILE* in  = fopen(infile, "r");
     FILE* scriptfile = fopen(filem, "r");
-    FILE* out = fopen(infile, "wb");
+    FILE* out = fopen(outfile, "a");
     if (in == NULL)
     {
         perror("Can't open infile");
@@ -147,54 +162,40 @@ int apply(const char* infile, const char* filem, const char* outfile)
         return -1;
     }
 
-    _Bool res = 0;
 
-    char buf[MAX_SIZE_ITEM];
+    int last = 0;
+    rewind(in);
+    rewind(scriptfile);
+    rewind(out);
 
-    while (fgets(buf, MAX_SIZE_ITEM, scriptfile))
+    while (!feof(scriptfile))
     {
         edit todo;
 
-        if (strlen(buf) == MAX_SIZE_ITEM) // TODO reformat into list of edits
+        if (parse_ADD(scriptfile, &todo))
         {
-            if (parse_ADD(buf, &todo))
-            {
-                res &= apply_ADD(out, &todo);
-            }
-            else if (parse_DEL(buf, &todo))
-            {
-                res &= apply_DEL(out, &todo);
-            }
-            else if (parse_SET(buf, &todo))
-            {
-                res &= apply_SET(out, in, &todo);
-            }
-            else
-            {
-                // vedere
-            }
-
-
-
+            file_copy(in, out, todo.pos - last);
+            apply_ADD(out, &todo);
+        }
+        else if (parse_DEL(scriptfile, &todo))
+        {
+            file_copy(in, out, todo.pos - last);
+            apply_DEL(out, &todo);
+            //fseek(scriptfile, -4, SEEK_CUR);
+        }
+        else if (parse_SET(scriptfile, &todo))
+        {
+            file_copy(in, out, todo.pos - last);
+            apply_SET(out, in, &todo);
         }
         else
         {
             // vedere
         }
-    }
 
-    node* list = NULL;
-
-    while (list->next)
-    {
+        memset(&todo, 0, sizeof(todo));
 
     }
-
-
-
-
-
-
 
     if (in)         fclose(in);
     if (scriptfile) fclose(scriptfile);
