@@ -17,16 +17,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
-
-// glibc doesn't have strlcpy
-#ifdef __GNU_LIBRARY__
-    #include "../include/safe_str/strlcpy.h"
-#endif
 
 #include "../include/distance.h"
 #include "../include/script.h"
@@ -42,24 +36,6 @@ void abortHandler()
     // handler cause it's not reentrant
     write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
     exit(EXIT_FAILURE);
-}
-
-
-void print(edit* e)
-{
-    if (e->operation == ADD)
-    {
-        printf("Insert %c", e->arg2);
-    }
-    else if (e->operation == DEL)
-    {
-        printf("Delete %c", e->arg1);
-    }
-    else
-    {
-        printf("Substitute %c for %c", e->arg2, e->arg1);
-    }
-    printf(" at %u\n", e->pos);
 }
 
 

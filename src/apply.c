@@ -18,15 +18,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #include "../include/script.h"
 #include "../include/list.h"
 #include "../include/endianness.h"
-
-// glibc doesn't have strlcpy
-#ifdef __GNU_LIBRARY__
-#include "../include/safe_str/strlcpy.h"
-#endif
+#include "../include/util.h"
 
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
@@ -38,7 +35,7 @@ u_int32_t bytes_to_uint32(char* buf)
 
 _Bool parse_ADD(FILE* file, edit* result)
 {
-    int p = ftell(file);
+    long p = ftell(file);
     if (result == NULL)
     {
         return false;
@@ -61,7 +58,7 @@ _Bool parse_ADD(FILE* file, edit* result)
 
 _Bool parse_DEL(FILE* file, edit* result)
 {
-    int p = ftell(file);
+    long p = ftell(file);
     if (result == NULL)
     {
         return false;
@@ -83,7 +80,7 @@ _Bool parse_DEL(FILE* file, edit* result)
 
 _Bool parse_SET(FILE* file, edit* result)
 {
-    int p = ftell(file);
+    long p = ftell(file);
     if (result == NULL)
     {
         return false;
@@ -110,30 +107,23 @@ _Bool apply_ADD(FILE* out, edit* toApply)
     fputc(b, out);
 }
 
-_Bool apply_DEL(FILE* out, edit* toApply)
+_Bool apply_DEL(FILE* in)
 {
-    fseek(out, -1, SEEK_CUR);
-}
-
-_Bool apply_SET(FILE* out, FILE* in, edit* toApply) // todo: ALL: check for EOF
-{
-    char b = toApply->arg2;
     fseek(in, 1, SEEK_CUR);
-    fputc(b, out);
-    fflush(out);
 }
 
-int file_copy(FILE* in, FILE* out, int len)
+_Bool apply_SET(FILE* out, FILE* in, edit* toApply)
 {
-    char c;
-    for (int i = 0; i < len; i++)
-    {
-        c = getc(in);
-        if (c == EOF)
-            return -1;
-        putc(c, out);
-    }
-    return 0;
+    fseek(in, 1, SEEK_CUR);
+    char b = toApply->arg2;
+    fputc(b, out);
+}
+
+int get_num_ops(FILE* script)
+{
+    return count_occurrences(script, "ADD") +
+           count_occurrences(script, "DEL") +
+           count_occurrences(script, "SET");
 }
 
 int apply_edit_script(const char* infile, const char* filem, const char* outfile)
@@ -145,7 +135,7 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
 
     FILE* in  = fopen(infile, "r");
     FILE* scriptfile = fopen(filem, "r");
-    FILE* out = fopen(outfile, "a");
+    FILE* out = fopen(outfile, "w");
     if (in == NULL)
     {
         perror("Can't open infile");
@@ -162,30 +152,32 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
+    struct stat st;
+    stat(filem, &st);
+    if (st.st_size == 0)
+    {
+        return -1;
+    }
 
-    int last = 0;
-    rewind(in);
-    rewind(scriptfile);
-    rewind(out);
+    int numOps = get_num_ops(scriptfile);
 
-    while (!feof(scriptfile))
+    for (int i = 0; i < numOps; i++)
     {
         edit todo;
 
         if (parse_ADD(scriptfile, &todo))
         {
-            file_copy(in, out, todo.pos - last);
+            file_copy(in, out, todo.pos - ftell(in));
             apply_ADD(out, &todo);
         }
         else if (parse_DEL(scriptfile, &todo))
         {
-            file_copy(in, out, todo.pos - last);
-            apply_DEL(out, &todo);
-            //fseek(scriptfile, -4, SEEK_CUR);
+            file_copy(in, out, todo.pos - ftell(in));
+            apply_DEL(in);
         }
         else if (parse_SET(scriptfile, &todo))
         {
-            file_copy(in, out, todo.pos - last);
+            file_copy(in, out, todo.pos - ftell(in));
             apply_SET(out, in, &todo);
         }
         else
@@ -194,11 +186,11 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         }
 
         memset(&todo, 0, sizeof(todo));
-
     }
 
     if (in)         fclose(in);
     if (scriptfile) fclose(scriptfile);
     if (out)        fclose(out);
 
+    return 0;
 }

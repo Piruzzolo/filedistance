@@ -33,7 +33,9 @@ void swap_array_edit(edit* a, edit* b, size_t n);
 
 void swap_array_int(int* a, int* b, size_t n);
 
-int filecpy(FILE * sourceFile, FILE * destFile);
+int file_copy(FILE* in, FILE* out, int len);
+
+int count_occurrences(FILE* file, const char* word);
 
 
 #endif // FILEDISTANCE_UTIL_H

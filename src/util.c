@@ -17,6 +17,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h> // strlen
+#include <stdbool.h>
+
 #include "../include/util.h"
 
 /**
@@ -102,6 +105,50 @@ void swap_array_int( int* a, int* b, size_t n )
         a[i] = b[i];
         b[i] = tmp;
     }
+}
+
+int count_occurrences(FILE* file, const char* word)
+{
+    int count = 0;
+    int ch;
+    int len = strlen(word);
+
+    while (true)
+    {
+        if ((ch = fgetc(file)) == EOF)
+            break;
+
+        if ((char) ch != *word)
+            continue;
+
+        for (int i = 1; i < len; ++i)
+        {
+            if ((ch = fgetc(file)) == EOF)
+                return count;
+
+            if ((char) ch != word[i])
+            {
+                fseek(file, 1 - i, SEEK_CUR);
+                continue;
+            }
+        }
+        ++count;
+    }
+
+    rewind(file);
+    return count;
+}
+
+int file_copy(FILE* in, FILE* out, int len)
+{
+    char c;
+    for (int i = 0; i < len; i++)
+    {
+        c = getc(in);
+        if (c == EOF) return -1;
+        putc(c, out);
+    }
+    return 0;
 }
 
 

@@ -22,4 +22,4 @@ add_executable(FileDistance
 
         include/safe_str/strlcpy.h
             src/safe_str/strlcpy.c
-        include/endianness.h)
+        include/endianness.h include/safestr.h)
