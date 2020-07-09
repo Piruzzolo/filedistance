@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "../include/distance.h"
 #include "../include/script.h"
@@ -38,6 +39,9 @@ void abortHandler()
     write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
     exit(EXIT_FAILURE);
 }
+
+
+void parse_int_or_fail(const char* string, long* v);
 
 
 void hello()
@@ -150,7 +154,9 @@ int main(int argc, char** argv)
     {
         if (argc == 5)
         {
-            search_all(argv[2], argv[3], argv[4]);
+            long limit = 0;
+            parse_int_or_fail(argv[4], &limit);
+            search_all(argv[2], argv[3], limit);
             exit(EXIT_SUCCESS);
         }
         else
@@ -172,4 +178,25 @@ int main(int argc, char** argv)
         print_usage();
     }
 
+}
+
+void parse_int_or_fail(const char* string, long* v)
+{
+    char *endptr;
+    errno = 0;
+    long val = strtol(string, &endptr, 10);
+
+    if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
+    {
+        perror("strtol");
+        exit(EXIT_FAILURE);
+    }
+
+    if (endptr == string)
+    {
+        fprintf(stderr, "No digits were found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    *v = val;
 }

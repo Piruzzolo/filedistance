@@ -21,13 +21,26 @@
 #include <stdio.h>
 #include <dirent.h>
 
-typedef struct _FilenameDistance
+typedef struct _name_distance
 {
     int distance;
     char filename[PATH_MAX];
-} FilenameDistance;
 
-int search_all(FILE* inputfile, DIR* dir, int limit);
+} name_distance;
+
+//int comp_name_distance(const void* a, const void* b)
+//{
+//    if (((name_distance*) a)->distance < ((name_distance*) b)->distance)
+//        return -1;
+//
+//    if (((name_distance*) a)->distance == ((name_distance*) b)->distance)
+//        return 0;
+//
+//    if (((name_distance*) a)->distance > ((name_distance*) b)->distance)
+//        return 1;
+//}
+
+int search_all(const char* inputfile, const char* dir, long limit);
 
 int search_min(const char* filename, const char* dir);
 

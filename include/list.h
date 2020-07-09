@@ -27,7 +27,18 @@ typedef struct node
     struct node* next;
 } node;
 
+enum
+{
+    EQUAL_TO,
+    LESS_THAN,
+    GTR_THAN,
+    EQ_LESS_THAN,
+    EQ_GTR_THAN
+} op_t;
+
 typedef void (*callback_t)(node* data);
+
+typedef _Bool (*comparison_f)(void* data, int op, int value);
 
 /*
     create a new node
@@ -37,6 +48,7 @@ typedef void (*callback_t)(node* data);
 */
 node* create(void* data, node* next);
 
+void MergeSort(node* head);
 /*
     add a new node at the beginning of the list
 */
@@ -57,10 +69,12 @@ node* insert_after(node *head, void* data, node* prev);
 */
 node* insert_before(node *head, void* data, node* nxt);
 
+node* filter_list(node* head, int op, long value, comparison_f f);
+
 /*
     traverse the linked list
 */
-void traverse(node* head, callback_t f);
+void traverse_list(node* head, callback_t f);
 /*
     remove node from the front of list
 */

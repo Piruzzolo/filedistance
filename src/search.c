@@ -19,7 +19,9 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <ftw.h>
+#include <ftw.h> // ftw
+#include <limits.h> // INT_MAX
+#include <stdbool.h>
 
 #include "../include/search.h"
 #include "../include/list.h"
@@ -29,7 +31,54 @@
 
 char* inputFile;
 node* list = NULL;
-FilenameDistance* fdList = NULL;
+name_distance* fdList = NULL;
+
+_Bool compare_fun(void* pVoid, int op, int value)
+{
+    switch (op)
+    {
+        case EQUAL_TO:
+        {
+            return ((name_distance*) pVoid)->distance == value;
+        }
+        case LESS_THAN:
+        {
+            return ((name_distance*) pVoid)->distance < value;
+        }
+        case GTR_THAN:
+        {
+            return ((name_distance*) pVoid)->distance > value;
+        }
+        case EQ_LESS_THAN:
+        {
+            return ((name_distance*) pVoid)->distance <= value;
+        }
+        case EQ_GTR_THAN:
+        {
+            return ((name_distance*) pVoid)->distance >= value;
+        }
+
+        default:
+            return false;
+    }
+}
+
+
+int min_list_file_distance(node* head)
+{
+    int min = INT_MAX;
+
+    while (head != NULL)
+    {
+        if (min > ((name_distance*) head->data)->distance)
+            min = ((name_distance*) head->data)->distance;
+
+        head = head->next;
+    }
+
+    return min;
+}
+
 
 int add_file(const char *fname, const struct stat *st, int type)
 {
@@ -42,7 +91,7 @@ int add_file(const char *fname, const struct stat *st, int type)
         return -1;
     }
 
-    FilenameDistance* fd = (FilenameDistance*) malloc(sizeof(FilenameDistance));
+    name_distance* fd = (name_distance*) malloc(sizeof(name_distance));
     if (!fd)
     {
         return -1;
@@ -50,9 +99,14 @@ int add_file(const char *fname, const struct stat *st, int type)
 
     fd->distance = distance;
 
+    char resolvedPath[PATH_MAX + 1];
+    char* ptr;
+    ptr = realpath(fname, resolvedPath);
+
     // copy & detect truncation
-    if (strlcpy(fd->filename, fname, sizeof(fd->filename)) >= sizeof(fd->filename))
+    if (strlcpy(fd->filename, ptr, sizeof(fd->filename)) >= sizeof(fd->filename))
     {
+        // error
         return -1;
     }
 
@@ -68,18 +122,30 @@ int add_file(const char *fname, const struct stat *st, int type)
     return 0;
 }
 
-void print_node(node* node)
+void print_node_distance(node* node)
 {
-    FilenameDistance* fd = ((FilenameDistance*) node->data);
+    name_distance* fd = ((name_distance*) node->data);
 
     char* filename = fd->filename;
     int distance = fd->distance;
-    printf("%s -> %d\n", filename, distance);
+
+    //printf("%s -> %d\n", filename, distance);
+    printf("%s\n", fd->filename);
+}
+
+void print_node_name_distance(node* node)
+{
+    name_distance* fd = ((name_distance*) node->data);
+
+    char* filename = fd->filename;
+    int distance = fd->distance;
+
+    printf("%d %s\n", distance, filename);
 }
 
 void saveArray(node* node)
 {
-    FilenameDistance* fd = ((FilenameDistance*) node->data);
+    name_distance* fd = ((name_distance*) node->data);
 
     char* filename = fd->filename;
     int distance = fd->distance;
@@ -104,35 +170,50 @@ int search_min(const char* f, const char* dir)
         // error
     }
 
-    traverse(list, (callback_t) print_node);
+    // find min of list
+    int min = min_list_file_distance(list);
+
+    // filter list in place
+    node* filtered = filter_list(list, EQUAL_TO, min, compare_fun);
+
+    traverse_list(filtered, (callback_t) print_node_distance);
+
+    // frees up the list
+    dispose(filtered);
 
     return 0;
 }
 
-int search_all(FILE* inputfile, DIR* dir, int limit)
+
+int search_all(const char* f, const char* dir, long limit)
 {
-    if (inputfile == NULL || dir == NULL)
+    if (f == NULL || dir == NULL)
     {
-        // some error
-        return NULL;
+        //perror ...
+        return -1;
     }
 
-    //inputFile = f;
+    inputFile = (char*) f;
 
-    // dir traversal, 8 open dirs max
-    ftw(dir, add_file, 8);
-
-    traverse(list, (callback_t) print_node);
-
-    int num = count(list);
-    if (num > 0)
+    // dir traversal, 8 dir aperte max
+    int res = ftw(dir, add_file, 8);
+    if (res != 0)
     {
-        fdList = (FilenameDistance*) malloc(num * sizeof(FilenameDistance));
+        // error
     }
 
-    // callback c = saveArray;
-    // traverse(list, c); todo
+    // filter list in place
+    node* filtered = filter_list(list, EQ_LESS_THAN, limit, compare_fun);
+
+    // sort - don't convert to array and qsort() to save memory
+    //int len = count(filtered);
+    //MergeSort(filtered);
+
+    traverse_list(filtered, (callback_t) print_node_name_distance);
+
+    // frees up the list
+    dispose(list);
+    dispose(filtered);
 
     return 0;
-
 }
