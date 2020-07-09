@@ -25,21 +25,15 @@
 #include "../include/list.h"
 #include "../include/distance.h"
 
-// glibc non ha strlcpy
-#ifdef __GNU_LIBRARY__
-    #include "../include/safe_str/strlcpy.h"
-#else
-    #include <string.h>
-#endif
+#include "../include/safestr.h"
 
 char* inputFile;
 node* list = NULL;
 FilenameDistance* fdList = NULL;
 
-int print_callback(const char *fname, const struct stat *st, int type)
+int add_file(const char *fname, const struct stat *st, int type)
 {
-    // if not normal file, return
-    if (type != FTW_F)
+    if (type == FTW_D)
         return 0;
 
     int distance = levenshtein_file_distance(fname, inputFile);
@@ -104,8 +98,11 @@ int search_min(const char* f, const char* dir)
     inputFile = f;
 
     // dir traversal, 8 dir aperte max
-    int res = ftw(dir, print_callback, 8);
-    if (!res) return -1;
+    int res = ftw(dir, add_file, 8);
+    if (res != 0)
+    {
+        // error
+    }
 
     traverse(list, (callback_t) print_node);
 
@@ -122,9 +119,9 @@ int search_all(FILE* inputfile, DIR* dir, int limit)
 
     //inputFile = f;
 
-    // dir traversal, 8 dir aperte max
-    ftw(dir, print_callback, 8);
-    static node* list = NULL;
+    // dir traversal, 8 open dirs max
+    ftw(dir, add_file, 8);
+
     traverse(list, (callback_t) print_node);
 
     int num = count(list);

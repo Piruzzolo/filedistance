@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <errno.h>
 
 #include "../include/distance.h"
 #include "../include/script.h"
@@ -69,7 +70,7 @@ int main(int argc, char** argv)
 
     if (argc < 2)
     {
-        perror("Expected at least one argument\n");
+        printf("Expected at least one argument\n\n");
         print_usage();
         exit(EXIT_FAILURE);
     }
@@ -84,7 +85,7 @@ int main(int argc, char** argv)
 
             if (result < 0)
             {
-                printf("ERROR: Can't open the file(s)\n");
+                printf("ERROR: Can't open the file(s).\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -101,13 +102,13 @@ int main(int argc, char** argv)
             }
             else
             {
-                printf("ERROR: Can't save the output file\n");
+                printf("ERROR: Can't save the output file.\n");
                 exit(EXIT_FAILURE);
             }
         }
         else
         {
-            perror("ERROR: Wrong number of arguments for 'distance' command\n");
+            printf("ERROR: Wrong number of arguments for 'distance' command.\n");
             print_usage();
             exit(EXIT_FAILURE);
         }
@@ -116,12 +117,17 @@ int main(int argc, char** argv)
     {
         if (argc == 5)
         {
-            apply_edit_script(argv[2], argv[3], argv[4]);
-            exit(EXIT_SUCCESS);
+            if (apply_edit_script(argv[2], argv[3], argv[4]))
+                exit(EXIT_SUCCESS);
+            else
+            {
+                print_apply_err(errno);
+                exit(EXIT_FAILURE);
+            }
         }
         else
         {
-            perror("ERROR: Wrong number of arguments for 'apply' command\n");
+            printf("ERROR: Wrong number of arguments for 'apply' command.\n");
             print_usage();
             exit(EXIT_FAILURE);
         }
@@ -135,7 +141,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            perror("ERROR: Wrong number of arguments for 'search' command\n");
+            printf("ERROR: Wrong number of arguments for 'search' command.\n");
             print_usage();
             exit(EXIT_FAILURE);
         }
@@ -149,21 +155,20 @@ int main(int argc, char** argv)
         }
         else
         {
-            perror("ERROR: Wrong number of arguments for 'searchall' command\n");
-            print_usage();
-            exit(EXIT_FAILURE);
+            printf("ERROR: Wrong number of arguments for 'searchall' command.\n");
+            print_usage(); exit(EXIT_FAILURE);
         }
     }
     else if (strcmp(argv[1], "help") == 0)
     {
         if (argc == 2)
         {
-            print_usage();
-            exit(EXIT_SUCCESS);
+            print_usage(); exit(EXIT_SUCCESS);
         }
     }
     else
     {
+        printf("ERROR: Command %s not valid.\n\n", argv[1]);
         print_usage();
     }
 

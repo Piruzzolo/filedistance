@@ -22,70 +22,12 @@
 
 #include "../include/util.h"
 
-/**
- * Copy file contents character by charcter from
- * one file to another.
- * It return total character copied count.
- *
- * @sourceFile  Pointer to source FILE.
- * @destFile    Pointer to destination FILE.
- */
-int filecpy(FILE * sourceFile, FILE * destFile)
-{
-    int  count = 0;
-    char ch;
-
-    /* Copy file contents character by character. */
-    while ((ch = fgetc(sourceFile)) != EOF)
-    {
-        fputc(ch, destFile);
-
-        /* Increment character copied count */
-        count++;
-    }
-
-    return count;
-}
-
-int load_file(char* filename, char** buffer)
-{
-    int size = 0;
-
-    FILE *f = fopen(filename, "r");
-
-    if (f == NULL)
-    {
-        *buffer = NULL;
-        return -1;
-    }
-
-    fseek(f, 0, SEEK_END);
-    size = (int) ftell(f);
-
-    fseek(f, 0, SEEK_SET);
-
-    *buffer = (char*) malloc(size + 1);
-
-    if (size != fread(*buffer, sizeof(char), size, f))
-    {
-        free(*buffer);
-        return -2;
-    }
-    fclose(f);
-
-    (*buffer)[size] = 0;
-
-    return size;
-}
 
 int minmin(int x, int y, int z)
 {
-    int smallest = x;
-    if (smallest > y) smallest = y;
-    if (smallest > z) smallest = z;
-
-    return smallest;
+    return min(min(x, y), z);
 }
+
 
 void swap_array_edit(edit* a, edit* b, size_t n)
 {
@@ -97,6 +39,7 @@ void swap_array_edit(edit* a, edit* b, size_t n)
     }
 }
 
+
 void swap_array_int( int* a, int* b, size_t n )
 {
     for ( size_t i = 0; i < n; i++ )
@@ -107,10 +50,11 @@ void swap_array_int( int* a, int* b, size_t n )
     }
 }
 
+
 int count_occurrences(FILE* file, const char* word)
 {
     int count = 0;
-    int ch;
+    int ch = 0;
     int len = strlen(word);
 
     while (true)
@@ -139,7 +83,8 @@ int count_occurrences(FILE* file, const char* word)
     return count;
 }
 
-int file_copy(FILE* in, FILE* out, int len)
+
+int file_copy(FILE* in, FILE* out, unsigned int len)
 {
     char c;
     for (int i = 0; i < len; i++)
@@ -156,6 +101,7 @@ int min(int x, int y)
 {
     return (x < y) ? x : y;
 }
+
 
 int max(int x, int y)
 {

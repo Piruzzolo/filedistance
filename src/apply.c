@@ -19,14 +19,40 @@
 #include <string.h>
 #include <stdbool.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "../include/script.h"
 #include "../include/list.h"
 #include "../include/endianness.h"
 #include "../include/util.h"
+#include "../include/apply.h"
 
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
+
+void print_apply_err(int err)
+{
+    switch (err)
+    {
+        case EEMPTYSCRIPT:
+        {
+            printf("ERROR: Script file is empty.\n");
+            break;
+        }
+        case ECANTOPEN:
+        {
+            printf("ERROR: Can't open one or more files.\n");
+            break;
+        }
+        case ECORRUPTD:
+        {
+            printf("ERROR: Script file is invalid or corrupted.\n");
+            break;
+        }
+        default:
+            return;
+    }
+}
 
 u_int32_t bytes_to_uint32(char* buf)
 {
@@ -47,7 +73,7 @@ _Bool parse_ADD(FILE* file, edit* result)
     {
         result->operation = ADD;
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
-        result->arg2 = buf[MAX_SIZE_ITEM-1];
+        result->arg2 = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
@@ -136,19 +162,9 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
     FILE* in  = fopen(infile, "r");
     FILE* scriptfile = fopen(filem, "r");
     FILE* out = fopen(outfile, "w");
-    if (in == NULL)
+    if (in == NULL || scriptfile == NULL || out == NULL)
     {
-        perror("Can't open infile");
-        return -1;
-    }
-    if (in == NULL)
-    {
-        perror("Can't open script");
-        return -1;
-    }
-    if (out == NULL)
-    {
-        perror("Can't open outfile");
+        errno = ECANTOPEN;
         return -1;
     }
 
@@ -156,6 +172,7 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
     stat(filem, &st);
     if (st.st_size == 0)
     {
+        errno = EEMPTYSCRIPT;
         return -1;
     }
 
@@ -182,7 +199,8 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         }
         else
         {
-            // vedere
+            errno = ECORRUPTD;
+            return -1;
         }
 
         memset(&todo, 0, sizeof(todo));
