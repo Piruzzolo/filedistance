@@ -163,6 +163,48 @@ void traverse_list(node* head, callback_t f)
         cursor = cursor->next;
     }
 }
+
+int save_to_array(node* list, name_distance** arr)
+{
+    int cnt = count(list);
+    if (cnt)
+    {
+        *arr = (name_distance*) calloc(cnt, sizeof(name_distance));
+        node* cursor = list;
+        int i = 0;
+        while (cursor != NULL)
+        {
+            name_distance* nd = (name_distance*) (cursor->data);
+            int dist = nd->distance;
+            char* entry = malloc(sizeof(nd->filename));
+            if (entry)
+            {
+                // copy & detect truncation
+                if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
+                {
+                    // error
+                    return -1;
+                }
+            }
+
+            (*arr)[i].distance = dist;
+            strlcpy((*arr)[i].filename, entry, sizeof(nd->filename));
+
+            cursor = cursor->next;
+            i++;
+        }
+
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+
+
+}
+
+
 /*
     remove node from the front of list
 */
@@ -207,102 +249,6 @@ node* remove_back(node* head)
 
     return head;
 }
-
-
-
-
-
-
-// Takes two lists sorted in increasing order, and merge their nodes
-// together to make one big sorted list which is returned
-node* SortedMerge(node* a, node* b)
-{
-    // Base cases
-    if (a == NULL)
-        return b;
-
-    else if (b == NULL)
-        return a;
-
-    node* result = NULL;
-
-    // Pick either a or b, and recur
-    if (a->data <= b->data)
-    {
-        result = a;
-        result->next = SortedMerge(a->next, b);
-    }
-    else
-    {
-        result = b;
-        result->next = SortedMerge(a, b->next);
-    }
-
-    return result;
-}
-
-/*
-Split the nodes of the given list into front and back halves,
-and return the two lists using the reference parameters.
-If the length is odd, the extra node should go in the front list.
-It uses the fast/slow pointer strategy
-*/
-void FrontBackSplit(node* source, node* frontRef, node* backRef)
-{
-    // if length is less than 2, handle separately
-    if (source == NULL || source->next == NULL)
-    {
-        frontRef = source;
-        backRef = NULL;
-        return;
-    }
-
-    node* slow = source;
-    node* fast = source->next;
-
-    // Advance 'fast' two nodes, and advance 'slow' one node
-    while (fast != NULL)
-    {
-        fast = fast->next;
-        if (fast != NULL)
-        {
-            slow = slow->next;
-            fast = fast->next;
-        }
-    }
-
-    // 'slow' is before the midpoint in the list, so split it in two
-    // at that point.
-    frontRef = source;
-    backRef = slow->next;
-    slow->next = NULL;
-}
-
-// Sort given linked list using Merge sort algorithm
-void MergeSort(node* head)
-{
-    // Base case -- length 0 or 1
-    if (head == NULL || (head)->next == NULL)
-        return;
-
-    node* a;
-    node* b;
-
-    // Split head into 'a' and 'b' sublists
-    FrontBackSplit(head, a, b);
-
-    // Recursively sort the sublists
-    MergeSort(a);
-    MergeSort(b);
-
-    // answer = merge the two sorted lists together
-    head = SortedMerge(a, b);
-}
-
-
-
-
-
 
 
 /*

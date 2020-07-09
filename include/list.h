@@ -20,6 +20,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "search.h"
+#include "safestr.h"
 
 typedef struct node
 {
@@ -38,7 +42,7 @@ enum
 
 typedef void (*callback_t)(node* data);
 
-typedef _Bool (*comparison_f)(void* data, int op, int value);
+typedef _Bool (*comparison_f)(void* data, long op, int value);
 
 /*
     create a new node
@@ -48,7 +52,6 @@ typedef _Bool (*comparison_f)(void* data, int op, int value);
 */
 node* create(void* data, node* next);
 
-void MergeSort(node* head);
 /*
     add a new node at the beginning of the list
 */
@@ -115,6 +118,7 @@ int count(node *head);
 */
 node* insertion_sort(node* head);
 
+int save_to_array(node* list, name_distance** arr);
 /*
     reverse the linked list
 */

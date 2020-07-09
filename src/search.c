@@ -19,9 +19,10 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <ftw.h> // ftw
-#include <limits.h> // INT_MAX
+#include <ftw.h>     // ftw
+#include <limits.h>  // INT_MAX
 #include <stdbool.h>
+#include <string.h>  // strcmp
 
 #include "../include/search.h"
 #include "../include/list.h"
@@ -33,7 +34,9 @@ char* inputFile;
 node* list = NULL;
 name_distance* fdList = NULL;
 
-_Bool compare_fun(void* pVoid, int op, int value)
+#define MAX_OPEN_FD 8 // max handles open at the same time
+
+_Bool compare_fun(void* pVoid, long op, int value)
 {
     switch (op)
     {
@@ -122,35 +125,31 @@ int add_file(const char *fname, const struct stat *st, int type)
     return 0;
 }
 
-void print_node_distance(node* node)
+void print_node_name(node* node)
 {
     name_distance* fd = ((name_distance*) node->data);
 
-    char* filename = fd->filename;
-    int distance = fd->distance;
-
-    //printf("%s -> %d\n", filename, distance);
     printf("%s\n", fd->filename);
 }
 
-void print_node_name_distance(node* node)
+
+int cmpfunc(const void* a, const void* b)
 {
-    name_distance* fd = ((name_distance*) node->data);
+    name_distance* nd1 = ((name_distance*) a);
+    name_distance* nd2 = ((name_distance*) b);
 
-    char* filename = fd->filename;
-    int distance = fd->distance;
-
-    printf("%d %s\n", distance, filename);
-}
-
-void saveArray(node* node)
-{
-    name_distance* fd = ((name_distance*) node->data);
-
-    char* filename = fd->filename;
-    int distance = fd->distance;
-    printf("%s -> %d\n", filename, distance);
-
+    if (nd1->distance < nd2->distance)
+    {
+        return -1;
+    }
+    else if (nd1->distance > nd2->distance)
+    {
+        return 1;
+    }
+    else
+    {
+        return strcmp(nd1->filename, nd2->filename);
+    }
 }
 
 int search_min(const char* f, const char* dir)
@@ -176,7 +175,7 @@ int search_min(const char* f, const char* dir)
     // filter list in place
     node* filtered = filter_list(list, EQUAL_TO, min, compare_fun);
 
-    traverse_list(filtered, (callback_t) print_node_distance);
+    traverse_list(filtered, (callback_t) print_node_name);
 
     // frees up the list
     dispose(filtered);
@@ -184,6 +183,11 @@ int search_min(const char* f, const char* dir)
     return 0;
 }
 
+
+void print_fd(name_distance nd)
+{
+    printf("%d %s\n", nd.distance, nd.filename);
+}
 
 int search_all(const char* f, const char* dir, long limit)
 {
@@ -196,7 +200,7 @@ int search_all(const char* f, const char* dir, long limit)
     inputFile = (char*) f;
 
     // dir traversal, 8 dir aperte max
-    int res = ftw(dir, add_file, 8);
+    int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {
         // error
@@ -205,15 +209,22 @@ int search_all(const char* f, const char* dir, long limit)
     // filter list in place
     node* filtered = filter_list(list, EQ_LESS_THAN, limit, compare_fun);
 
-    // sort - don't convert to array and qsort() to save memory
-    //int len = count(filtered);
-    //MergeSort(filtered);
+    int len = count(filtered);
+    if (len <= 0)
+        return 0;
 
-    traverse_list(filtered, (callback_t) print_node_name_distance);
+    name_distance* arr = NULL;
 
-    // frees up the list
-    dispose(list);
+    save_to_array(filtered, &arr);
+
     dispose(filtered);
+
+    qsort(arr, len, sizeof(name_distance), cmpfunc);
+
+    for (int i = 0; i < len; i++)
+    {
+        print_fd(arr[i]);
+    }
 
     return 0;
 }
