@@ -17,14 +17,31 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
-#include "../include/util.h" // minmin, min, swap_array_int
+#include "../include/util.h" // minmin, min
 
 #define BUFSIZE 256
 
+#define MB 1000000 // bytes
 
-int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2) // todo: handle null sizes
+#define MAX_MAP 10*MB
+
+int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
 {
+    if (len1 == 0)
+    {
+        return len2;
+    }
+
+    if (len2 == 0)
+    {
+        return len1;
+    }
+
     if (len1 < len2)
     {
         return levenshtein_dist(str2, len2, str1, len1);
@@ -78,35 +95,42 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
     return distance;
 }
 
-// CHECKED SAFE
+
 int levenshtein_file_distance(const char* file1, const char* file2)
 {
-    FILE* f1 = fopen(file1, "r" );
-    FILE* f2 = fopen(file2, "r" );
+    char* data1 = NULL;
+    char* data2 = NULL;
+
+    struct stat st1;
+    stat(file1, &st1);
+    int size1 = st1.st_size;
+
+    struct stat st2;
+    stat(file2, &st2);
+    int size2 = st2.st_size;
+
+    int f1 = open(file1, O_RDONLY);
+    int f2 = open(file2, O_RDONLY);
 
     int dist = 0;
 
-    char buffer1[BUFSIZE];
-    char buffer2[BUFSIZE];
-
-    if (f1 != NULL && f2 != NULL)
+    if (f1 != -1 && f2 != -1)
     {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
-        {
-            dist += levenshtein_dist(buffer1, strlen(buffer1), buffer2, strlen(buffer2));
-        }
+        data1 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f1,0);
+        data2 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f2,0);
+
+        dist = levenshtein_dist(data1, size1, data2, size2);
     }
     else
     {
         return -1;
     }
 
-    if (f1) fclose(f1);
-    if (f2) fclose(f2);
+    munmap(data1, MAX_MAP);
+    munmap(data2, MAX_MAP);
+
+    close(f1);
+    close(f2);
 
     return dist;
-
 }
-
-
-

@@ -61,84 +61,110 @@ u_int32_t bytes_to_uint32(char* buf)
 
 _Bool parse_ADD(FILE* file, edit* result)
 {
+    /* save seek for rollback */
     long p = ftell(file);
+
     if (result == NULL)
     {
         return false;
     }
 
     char buf[MAX_SIZE_ITEM];
+
     fread(buf, MAX_SIZE_ITEM, 1, file);
+
     if (strncmp(buf, "ADD", 3) == 0)
     {
         result->operation = ADD;
+
+        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
+
         result->arg2 = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
+
     return false;
 }
 
 _Bool parse_DEL(FILE* file, edit* result)
 {
+    /* save seek for rollback */
     long p = ftell(file);
+
     if (result == NULL)
     {
         return false;
     }
 
     char buf[MAX_SIZE_ITEM - 1];
+
     fread(buf, MAX_SIZE_ITEM - 1, 1, file);
+
     if (strncmp(buf, "DEL", 3) == 0)
     {
         result->operation = DEL;
+
+        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
         return true;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
+
     return false;
 }
 
 _Bool parse_SET(FILE* file, edit* result)
 {
+    /* save seek for rollback */
     long p = ftell(file);
+
     if (result == NULL)
     {
         return false;
     }
 
     char buf[MAX_SIZE_ITEM];
+
     fread(buf, MAX_SIZE_ITEM, 1, file);
+
     if (strncmp(buf, "SET", 3) == 0)
     {
         result->operation = SET;
+
+        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
-        result->arg2 = buf[MAX_SIZE_ITEM-1];
+
+        result->arg2 = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
+
     return false;
 }
 
-_Bool apply_ADD(FILE* out, edit* toApply)
+void apply_ADD(FILE* out, edit* toApply)
 {
     char b = toApply->arg2;
     fputc(b, out);
 }
 
-_Bool apply_DEL(FILE* in)
+void apply_DEL(FILE* in)
 {
     fseek(in, 1, SEEK_CUR);
 }
 
-_Bool apply_SET(FILE* out, FILE* in, edit* toApply)
+void apply_SET(FILE* out, FILE* in, edit* toApply)
 {
     fseek(in, 1, SEEK_CUR);
     char b = toApply->arg2;
@@ -159,9 +185,10 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
-    FILE* in  = fopen(infile, "r");
-    FILE* scriptfile = fopen(filem, "r");
-    FILE* out = fopen(outfile, "w");
+    FILE* in         = fopen(infile,  "r");
+    FILE* scriptfile = fopen(filem,   "r");
+    FILE* out        = fopen(outfile, "w");
+
     if (in == NULL || scriptfile == NULL || out == NULL)
     {
         errno = ECANTOPEN;
