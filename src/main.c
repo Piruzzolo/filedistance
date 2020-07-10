@@ -57,6 +57,7 @@ void hello()
 
 void print_usage()
 {
+    printf("                                                             \n");
     printf("Usage: filedistance distance file1 file2 [output]            \n");
     printf("       filedistance apply inputfile filem outputfile         \n");
     printf("       filedistance search inputfile dir                     \n");

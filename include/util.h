@@ -21,17 +21,9 @@
 #include <stdio.h>
 #include "script.h"
 
-int load_file(char* filename, char** buffer);
-
 int min(int x, int y);
 
-int max(int x, int y);
-
 int minmin(int x, int y, int z);
-
-void swap_array_edit(edit* a, edit* b, size_t n);
-
-void swap_array_int(int* a, int* b, size_t n);
 
 int file_copy(FILE* in, FILE* out, unsigned int len);
 

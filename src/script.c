@@ -273,12 +273,7 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
     if (f1 != NULL && f2 != NULL)
     {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2)) // todo replace with fread
-
-            //char buffer[16+1]; /*leaving room for '\0' */
-            //x = fread(buffer, sizeof(char), 16, stream);
-            //buffer[x]='\0'
-
+        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
         {
             int distance = 0;
 

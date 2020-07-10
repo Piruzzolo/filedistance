@@ -19,6 +19,7 @@
 #define FILEDISTANCE_SCRIPT_H
 
 #include <stdio.h> // size_t
+
 #include "../include/distance.h"
 
 typedef enum

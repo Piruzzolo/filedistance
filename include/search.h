@@ -28,18 +28,6 @@ typedef struct _name_distance
 
 } name_distance;
 
-//int comp_name_distance(const void* a, const void* b)
-//{
-//    if (((name_distance*) a)->distance < ((name_distance*) b)->distance)
-//        return -1;
-//
-//    if (((name_distance*) a)->distance == ((name_distance*) b)->distance)
-//        return 0;
-//
-//    if (((name_distance*) a)->distance > ((name_distance*) b)->distance)
-//        return 1;
-//}
-
 int search_all(const char* inputfile, const char* dir, long limit);
 
 int search_min(const char* filename, const char* dir);
