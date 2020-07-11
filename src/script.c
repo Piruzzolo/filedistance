@@ -18,6 +18,11 @@
 #include <stdlib.h> // malloc, free
 #include <string.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <stdio.h>
 
 #include "../include/script.h"
 #include "../include/util.h"
@@ -121,26 +126,19 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
     return mat[len1][len2].score;
 }
 
-edit** levenshtein_matrix_create(size_t len1, size_t len2)
+edit** levenshtein_matrix_create(size_t len1, size_t len2, int fd)
 {
-    edit** mat = malloc((len1 + 1) * sizeof(edit*));
-    if (mat == NULL)
+    long size = (len2 + 1) * (len1 + 1) * sizeof(edit);
+    edit (*mat)[len2 + 1] = (edit (*)[len2 + 1]) mmap(NULL,
+                                              size,
+                                                  PROT_WRITE | PROT_READ,
+                                                 MAP_SHARED,
+                                                 fd,
+                                             0);
+
+    if (mat == MAP_FAILED)
     {
         return NULL;
-    }
-    for (int i = 0; i <= len1; i++)
-    {
-        mat[i] = malloc((len2 + 1) * sizeof(edit));
-        if (mat[i] == NULL)
-        {
-            for (int j = 0; j < i; j++)
-            {
-                free(mat[j]);
-            }
-
-            free(mat);
-            return NULL;
-        }
     }
 
     for (int i = 0; i <= len1; i++)
@@ -164,8 +162,11 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
 {
     unsigned int dist;
 
-    edit** mat = NULL;
+    /* create a temp file and get descriptor */
+    int fd = fileno(tmpfile());
 
+    /* set size of tmpfile */
+    ftruncate(fd, (l1 + 1) * (l2 + 1) * sizeof(edit));
 
     /* degenerate cases */
     if (l1 == 0)
@@ -177,8 +178,37 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
         return l1;
     }
 
-    /* create matrix */
-    mat = levenshtein_matrix_create(l1, l2);
+    long size = (l2 + 1) * (l1 + 1) * sizeof(edit);
+    edit (*mat)[l2 + 1] = (edit (*)[l2 + 1]) mmap(NULL,
+                                                      size,
+                                                      PROT_WRITE | PROT_READ,
+                                                      MAP_SHARED,
+                                                      fd,
+                                                      0);
+    madvise(mat, size, MADV_WILLNEED);
+
+    if (mat == MAP_FAILED)
+    {
+        return NULL;
+    }
+
+    for (int i = 0; i <= l1; i++)
+    {
+        mat[i*l1+0].score = i;
+
+        mat[i][0].score = i;
+        mat[i][0].prev = NULL;
+        mat[i][0].c = 0;
+    }
+
+    for (int j = 0; j <= l2; j++)
+    {
+        mat[0][j].score = j;
+        mat[0][j].prev = NULL;
+        mat[0][j].c = 0;
+    }
+
+    array[ i*m + j ]
 
     if (mat == NULL)
     {
@@ -187,7 +217,62 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
     }
 
     /* Main algorithm */
-    dist = levenshtein_fill_matrix(mat, str1, l1, str2, l2);
+    //dist = levenshtein_fill_matrix(mat, str1, l1, str2, l2);
+
+    for (int j = 1; j <= l2; j++)
+    {
+        for (int i = 1; i <= l1; i++)
+        {
+            unsigned int substitution_cost;
+            unsigned int del = 0, ins = 0, subst = 0;
+            unsigned int best;
+
+            if (str1[i - 1] == str2[j - 1])
+            {
+                substitution_cost = 0;
+            }
+            else
+            {
+                substitution_cost = 1;
+            }
+
+            del = mat[i - 1][j].score + 1;                       /* deletion */
+            ins = mat[i][j - 1].score + 1;                       /* insertion */
+            subst = mat[i - 1][j - 1].score + substitution_cost; /* substitution */
+
+            best = minmin(del, ins, subst);
+
+            mat[i][j].score = best;
+            mat[i][j].c = str2[j - 1];
+            mat[i][j].pos = i - 1;
+
+            if (best == del)
+            {
+                mat[i][j].operation = DEL;
+                mat[i][j].prev = &mat[i - 1][j];
+            }
+            else if (best == ins)
+            {
+                mat[i][j].operation = ADD;
+                mat[i][j].prev = &mat[i][j - 1];
+            }
+            else
+            {
+                if (substitution_cost > 0)
+                {
+                    mat[i][j].operation = SET;
+                }
+                else
+                {
+                    mat[i][j].operation = NONE;
+                }
+                mat[i][j].prev = &mat[i - 1][j - 1];
+            }
+        }
+    }
+
+    dist = mat[l1][l2].score;
+
 
     /* Read back the edit script */
     *script = malloc(dist * sizeof(edit));
@@ -211,13 +296,13 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
     }
 
 
-    /* Clean up */
-    for (int i = 0; i <= l1; i++)
-    {
-        free(mat[i]);
-    }
+    ///* Clean up */
+    //for (int i = 0; i <= l1; i++)
+    //{
+    //    free(mat[i]);
+    //}
 
-    free(mat);
+    //free(mat);
 
     return dist;
 }
@@ -233,6 +318,7 @@ void append_script_file(FILE* file, edit* script, size_t len)
 
 int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
 {
+#ifdef MMAP
     char buffer1[BUFSIZE];
     char buffer2[BUFSIZE];
 
@@ -275,6 +361,57 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
     fclose(f1);
     fclose(f2);
     fclose(out);
+
+#endif
+
+    char* buffer1 = NULL;
+    char* buffer2 = NULL;
+
+    edit* script = NULL;
+
+    int dist = 0;
+
+    struct stat st1;
+    stat(file1, &st1);
+    int size1 = st1.st_size;
+
+    struct stat st2;
+    stat(file2, &st2);
+    int size2 = st2.st_size;
+
+    int f1 = open(file1, O_RDONLY);
+    int f2 = open(file2, O_RDONLY);
+
+    FILE* out = fopen(outfile, "w");
+
+    if (f1 != -1 && f2 != -1)
+    {
+        buffer1 = mmap(NULL, size1, PROT_READ, MAP_SHARED, f1,0);
+        buffer2 = mmap(NULL, size2, PROT_READ, MAP_SHARED, f2,0);
+
+        dist = levenshtein_distance_script(buffer1, size1, buffer2, size2, &script);
+
+        for (int i = 0; i < dist; i++)
+        {
+            print_edit(&script[i], out);
+        }
+
+        append_script_file(out, script, dist);
+    }
+    else
+    {
+        return -1;
+    }
+
+    printf("Distance: %d\n", dist);
+
+    printf("Edit script saved successfully: %s\n", outfile);
+
+    munmap(buffer1, size1);
+    munmap(buffer2, size2);
+
+    close(f1);
+    close(f2);
 
     return 0;
 

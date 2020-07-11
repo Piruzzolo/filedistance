@@ -110,8 +110,8 @@ int levenshtein_file_distance(const char* file1, const char* file2)
 
     if (f1 != -1 && f2 != -1)
     {
-        buf1 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f1,0);
-        buf2 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f2,0);
+        buf1 = mmap(NULL, size1, PROT_READ, MAP_PRIVATE, f1,0);
+        buf2 = mmap(NULL, size2, PROT_READ, MAP_PRIVATE, f2,0);
 
         dist = levenshtein_dist(buf1, size1, buf2, size2);
     }
@@ -120,8 +120,8 @@ int levenshtein_file_distance(const char* file1, const char* file2)
         return -1;
     }
 
-    munmap(buf1, MAX_MAP);
-    munmap(buf2, MAX_MAP);
+    munmap(buf1, size1);
+    munmap(buf2, size2);
 
     close(f1);
     close(f2);
