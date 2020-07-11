@@ -26,7 +26,7 @@ enum {
     ECORRUPTD
 } applyErr_t;
 
-void print_apply_err(int err);
+void apply_print_err(int err);
 
 /**
  * @brief Applies the edit operations in file scriptfile to infile, writing the result to outfile

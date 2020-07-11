@@ -17,7 +17,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> // strlen
+#include <string.h>  // strlen
 #include <stdbool.h>
 
 #include "../include/util.h"
@@ -28,34 +28,11 @@ int minmin(int x, int y, int z)
     return min(min(x, y), z);
 }
 
-
-void swap_array_edit(edit* a, edit* b, size_t n)
-{
-    for (size_t i = 0; i < n; i++)
-    {
-        edit tmp = a[i];
-        a[i] = b[i];
-        b[i] = tmp;
-    }
-}
-
-
-void swap_array_int( int* a, int* b, size_t n )
-{
-    for ( size_t i = 0; i < n; i++ )
-    {
-        int tmp = a[i];
-        a[i] = b[i];
-        b[i] = tmp;
-    }
-}
-
-
 int count_occurrences(FILE* file, const char* word)
 {
     int count = 0;
     int ch = 0;
-    int len = strlen(word);
+    size_t len = strlen(word);
 
     while (true)
     {
@@ -76,7 +53,7 @@ int count_occurrences(FILE* file, const char* word)
                 continue;
             }
         }
-        ++count;
+        count++;
     }
 
     rewind(file);
@@ -87,12 +64,15 @@ int count_occurrences(FILE* file, const char* word)
 int file_copy(FILE* in, FILE* out, unsigned int len)
 {
     char c;
+
     for (int i = 0; i < len; i++)
     {
         c = getc(in);
-        if (c == EOF) return -1;
+        if (c == EOF)
+            return -1;
         putc(c, out);
     }
+
     return 0;
 }
 
@@ -100,10 +80,4 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
 int min(int x, int y)
 {
     return (x < y) ? x : y;
-}
-
-
-int max(int x, int y)
-{
-    return (x > y) ? x : y;
 }

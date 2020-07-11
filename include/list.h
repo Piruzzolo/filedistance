@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "search.h"
 #include "safestr.h"
@@ -42,35 +43,11 @@ enum
 
 typedef void (*callback_t)(node* data);
 
-typedef _Bool (*comparison_f)(void* data, long op, int value);
+typedef bool (*comparison_f)(void* data, long op, int value);
 
-/*
-    create a new node
-    initialize the data and next field
-
-    return the newly created node
-*/
 node* create(void* data, node* next);
 
-/*
-    add a new node at the beginning of the list
-*/
-node* prepend(node* head, void* data);
-
-/*
-    add a new node at the end of the list
-*/
 node* append(node* head, void* data);
-
-/*
-    insert a new node after the prev node
-*/
-node* insert_after(node *head, void* data, node* prev);
-
-/*
-    insert a new node before the nxt node
-*/
-node* insert_before(node *head, void* data, node* nxt);
 
 node* filter_list(node* head, int op, long value, comparison_f f);
 
@@ -78,6 +55,7 @@ node* filter_list(node* head, int op, long value, comparison_f f);
     traverse the linked list
 */
 void traverse_list(node* head, callback_t f);
+
 /*
     remove node from the front of list
 */
@@ -89,42 +67,15 @@ node* remove_front(node* head);
 node* remove_back(node* head);
 
 /*
-    remove a node from the list
-*/
-node* remove_any(node* head,node* nd);
-/*
-    display a node
-*/
-void display(node* n);
-
-/*
-    Search for a specific node with input data
-
-    return the first matched node that stores the input data,
-    otherwise return NULL
-*/
-//node* search(node* head, void* data);
-
-/*
     remove all element of the list
 */
-void dispose(node *head);
+void list_free(node *head);
 /*
     return the number of elements in the list
 */
 int count(node *head);
-/*
-    sort the linked list using insertion sort
-*/
-node* insertion_sort(node* head);
 
 int save_to_array(node* list, name_distance** arr);
-/*
-    reverse the linked list
-*/
-node* reverse(node* head);
-/*
-    display the menu
-*/
+
 
 #endif //FILEDISTANCE_LIST_H

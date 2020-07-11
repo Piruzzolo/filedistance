@@ -30,7 +30,7 @@
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
 
-void print_apply_err(int err)
+void apply_print_err(int err)
 {
     switch (err)
     {
@@ -59,10 +59,10 @@ u_int32_t bytes_to_uint32(char* buf)
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }
 
-_Bool parse_ADD(FILE* file, edit* result)
+bool parse_ADD(FILE* file, edit* result)
 {
     /* save seek for rollback */
-    long p = ftell(file);
+    long oldseek = ftell(file);
 
     if (result == NULL)
     {
@@ -70,7 +70,6 @@ _Bool parse_ADD(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM];
-
     fread(buf, MAX_SIZE_ITEM, 1, file);
 
     if (strncmp(buf, "ADD", 3) == 0)
@@ -80,21 +79,21 @@ _Bool parse_ADD(FILE* file, edit* result)
         /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
-        result->arg2 = buf[MAX_SIZE_ITEM - 1];
+        result->c = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
 
     /* rollback seek */
-    fseek(file, p, SEEK_SET);
+    fseek(file, oldseek, SEEK_SET);
 
     return false;
 }
 
-_Bool parse_DEL(FILE* file, edit* result)
+bool parse_DEL(FILE* file, edit* result)
 {
     /* save seek for rollback */
-    long p = ftell(file);
+    long oldseek = ftell(file);
 
     if (result == NULL)
     {
@@ -102,7 +101,6 @@ _Bool parse_DEL(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM - 1];
-
     fread(buf, MAX_SIZE_ITEM - 1, 1, file);
 
     if (strncmp(buf, "DEL", 3) == 0)
@@ -116,12 +114,12 @@ _Bool parse_DEL(FILE* file, edit* result)
     }
 
     /* rollback seek */
-    fseek(file, p, SEEK_SET);
+    fseek(file, oldseek, SEEK_SET);
 
     return false;
 }
 
-_Bool parse_SET(FILE* file, edit* result)
+bool parse_SET(FILE* file, edit* result)
 {
     /* save seek for rollback */
     long p = ftell(file);
@@ -132,7 +130,6 @@ _Bool parse_SET(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM];
-
     fread(buf, MAX_SIZE_ITEM, 1, file);
 
     if (strncmp(buf, "SET", 3) == 0)
@@ -142,7 +139,7 @@ _Bool parse_SET(FILE* file, edit* result)
         /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
-        result->arg2 = buf[MAX_SIZE_ITEM - 1];
+        result->c = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
@@ -155,7 +152,7 @@ _Bool parse_SET(FILE* file, edit* result)
 
 void apply_ADD(FILE* out, edit* toApply)
 {
-    char b = toApply->arg2;
+    char b = toApply->c;
     fputc(b, out);
 }
 
@@ -166,8 +163,11 @@ void apply_DEL(FILE* in)
 
 void apply_SET(FILE* out, FILE* in, edit* toApply)
 {
+    /* increment seek of input file */
     fseek(in, 1, SEEK_CUR);
-    char b = toApply->arg2;
+
+    /* change char in position (seek file out)*/
+    char b = toApply->c;
     fputc(b, out);
 }
 
@@ -233,9 +233,9 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         memset(&todo, 0, sizeof(todo));
     }
 
-    if (in)         fclose(in);
-    if (scriptfile) fclose(scriptfile);
-    if (out)        fclose(out);
+    fclose(in);
+    fclose(scriptfile);
+    fclose(out);
 
     return 0;
 }

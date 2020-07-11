@@ -32,15 +32,9 @@
 
 int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
 {
-    if (len1 == 0)
-    {
-        return len2;
-    }
+    if (len1 == 0) return len2;
 
-    if (len2 == 0)
-    {
-        return len1;
-    }
+    if (len2 == 0) return len1;
 
     if (len1 < len2)
     {
@@ -49,11 +43,11 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
 
     int distance = 0;
 
-    int* prev = malloc((len2 + 1) * sizeof(int));
-    if (!prev) return -1;
+    int* prev = calloc((len2 + 1), sizeof(int));
+    int* curr = calloc((len2 + 1), sizeof(int));
+    if (!curr || !prev)
+        return -1;
 
-    int* curr = malloc((len2 + 1) * sizeof(int));
-    if (!curr) return -1;
     int* tmp = NULL;
 
     for (int i = 0; i <= len2; i++)
@@ -98,8 +92,10 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
 
 int levenshtein_file_distance(const char* file1, const char* file2)
 {
-    char* data1 = NULL;
-    char* data2 = NULL;
+    char* buf1 = NULL;
+    char* buf2 = NULL;
+
+    int dist = 0;
 
     struct stat st1;
     stat(file1, &st1);
@@ -112,22 +108,20 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     int f1 = open(file1, O_RDONLY);
     int f2 = open(file2, O_RDONLY);
 
-    int dist = 0;
-
     if (f1 != -1 && f2 != -1)
     {
-        data1 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f1,0);
-        data2 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f2,0);
+        buf1 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f1,0);
+        buf2 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f2,0);
 
-        dist = levenshtein_dist(data1, size1, data2, size2);
+        dist = levenshtein_dist(buf1, size1, buf2, size2);
     }
     else
     {
         return -1;
     }
 
-    munmap(data1, MAX_MAP);
-    munmap(data2, MAX_MAP);
+    munmap(buf1, MAX_MAP);
+    munmap(buf2, MAX_MAP);
 
     close(f1);
     close(f2);

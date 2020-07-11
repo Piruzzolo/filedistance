@@ -33,7 +33,7 @@ node* list = NULL;
 
 #define MAX_OPEN_FD 8 // max dirs open at the same time
 
-_Bool compare_fun(void* pVoid, long op, int value)
+bool compare_fun(void* pVoid, long op, int value)
 {
     int dist = ((name_distance*) pVoid)->distance;
 
@@ -139,9 +139,9 @@ int add_file(const char *fname, const struct stat *st, int type)
 
 void print_node_name(node* node)
 {
-    name_distance* fd = (name_distance*) node->data;
+    name_distance* nd = (name_distance*) node->data;
 
-    printf("%s\n", fd->filename);
+    printf("%s\n", nd->filename);
 }
 
 
@@ -190,13 +190,13 @@ int search_min(const char* f, const char* dir)
     int min = min_list_file_distance(list);
 
     /* filter list in place, keep elems w/ distance = min */
-    node* filtered = filter_list(list, EQUAL_TO, min, compare_fun);
+    node* filterd = filter_list(list, EQUAL_TO, min, compare_fun);
 
     /* print filenames */
-    traverse_list(filtered, (callback_t) print_node_name);
+    traverse_list(filterd, (callback_t) print_node_name);
 
     /* frees up the list */
-    dispose(filtered);
+    list_free(filterd);
 
     return 0;
 }
@@ -241,7 +241,7 @@ int search_all(const char* f, const char* dir, long limit)
     save_to_array(filtered, &arr);
 
     /* free list */
-    dispose(filtered);
+    list_free(filtered);
 
     /* order by distance asc, filename asc */
     qsort(arr, len, sizeof(name_distance), cmpfunc);

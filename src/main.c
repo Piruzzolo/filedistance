@@ -32,7 +32,7 @@
 
 static char abortMsg[] = "\nCTRL-C received. Stop.\n";
 
-void abortHandler()
+void abort_handler()
 {
     // it's not advisable to call printf inside an interrupt
     // handler cause it's not reentrant
@@ -40,29 +40,28 @@ void abortHandler()
     exit(EXIT_FAILURE);
 }
 
-
-void parse_int_or_fail(const char* string, long* v);
-
+void parse_int_or_fail(const char* str, long* v);
 
 void hello()
 {
-    printf("-------------------------------------------------------------\n");
-    printf("FileDistance  Copyright (C) 2020  Marco Savelli              \n");
-    printf("This program comes with ABSOLUTELY NO WARRANTY.              \n");
-    printf("This is free software, and you are welcome to redistribute it\n");
-    printf("under certain conditions. See 'LICENSE' for details          \n");
-    printf("-------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------\n");
+    printf(" FileDistance  Copyright (C) 2020  Marco Savelli              \n");
+    printf(" This program comes with ABSOLUTELY NO WARRANTY.              \n");
+    printf(" This is free software, and you are welcome to redistribute it\n");
+    printf(" under certain conditions. See 'LICENSE' for details          \n");
+    printf("--------------------------------------------------------------\n");
 }
 
 
 void print_usage()
 {
-    printf("                                                             \n");
-    printf("Usage: filedistance distance file1 file2 [output]            \n");
-    printf("       filedistance apply inputfile filem outputfile         \n");
-    printf("       filedistance search inputfile dir                     \n");
-    printf("       filedistance searchall inputfile dir limit            \n");
-    printf("       filedistance help                                     \n");
+    printf("                                                              \n");
+    printf(" Usage: filedistance distance file1 file2 [output]            \n");
+    printf("        filedistance apply inputfile filem outputfile         \n");
+    printf("        filedistance search inputfile dir                     \n");
+    printf("        filedistance searchall inputfile dir limit            \n");
+    printf("        filedistance help                                     \n");
+    printf("                                                              \n");
 }
 
 
@@ -71,7 +70,7 @@ int main(int argc, char** argv)
     hello();
 
     // handle CTRL-C
-    signal(SIGINT, abortHandler);
+    signal(SIGINT, abort_handler);
 
     if (argc < 2)
     {
@@ -107,15 +106,13 @@ int main(int argc, char** argv)
             }
             else
             {
-                printf("ERROR: Can't save the output file.\n");
-                exit(EXIT_FAILURE);
+                printf("ERROR: Can't save the output file.\n"); exit(EXIT_FAILURE);
             }
         }
         else
         {
             printf("ERROR: Wrong number of arguments for 'distance' command.\n");
-            print_usage();
-            exit(EXIT_FAILURE);
+            print_usage(); exit(EXIT_FAILURE);
         }
     }
     else if (strcmp(argv[1], "apply") == 0)
@@ -123,18 +120,18 @@ int main(int argc, char** argv)
         if (argc == 5)
         {
             if (apply_edit_script(argv[2], argv[3], argv[4]))
+            {
                 exit(EXIT_SUCCESS);
+            }
             else
             {
-                print_apply_err(errno);
-                exit(EXIT_FAILURE);
+                apply_print_err(errno); exit(EXIT_FAILURE);
             }
         }
         else
         {
             printf("ERROR: Wrong number of arguments for 'apply' command.\n");
-            print_usage();
-            exit(EXIT_FAILURE);
+            print_usage(); exit(EXIT_FAILURE);
         }
     }
     else if (strcmp(argv[1], "search") == 0)
@@ -147,8 +144,7 @@ int main(int argc, char** argv)
         else
         {
             printf("ERROR: Wrong number of arguments for 'search' command.\n");
-            print_usage();
-            exit(EXIT_FAILURE);
+            print_usage(); exit(EXIT_FAILURE);
         }
     }
     else if (strcmp(argv[1], "searchall") == 0)
@@ -181,22 +177,20 @@ int main(int argc, char** argv)
 
 }
 
-void parse_int_or_fail(const char* string, long* v)
+void parse_int_or_fail(const char* str, long* v)
 {
     char *endptr;
     errno = 0;
-    long val = strtol(string, &endptr, 10);
+    long val = strtol(str, &endptr, 10);
 
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
     {
-        perror("strtol");
-        exit(EXIT_FAILURE);
+        perror("strtol"); exit(EXIT_FAILURE);
     }
 
-    if (endptr == string)
+    if (endptr == str)
     {
-        fprintf(stderr, "No digits were found\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "No digits were found.\n"); exit(EXIT_FAILURE);
     }
 
     *v = val;

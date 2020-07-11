@@ -35,14 +35,11 @@ typedef struct _edit
     edit_type operation;
     unsigned int pos;
     unsigned int score;
-    char arg1;
-    char arg2;
+    char c;
     struct _edit* prev;
 } edit;
 
 void print_edit(const edit* e, FILE* outfile);
-
-int levenshtein_create_script(edit** script, const char* str1, size_t m, const char* str2, size_t n);
 
 int levenshtein_distance_script(const char* str1, size_t len1, const char* str2, size_t len2, edit** script);
 
