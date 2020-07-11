@@ -42,16 +42,6 @@ node* create(void* data, node* next)
 }
 
 /*
-    add a new node at the beginning of the list
-*/
-node* prepend(node* head, void* data)
-{
-    node* new_node = create(data, head);
-    head = new_node;
-    return head;
-}
-
-/*
     add a new node at the end of the list
 */
 node* append(node* head, void* data)
@@ -71,7 +61,6 @@ node* append(node* head, void* data)
 
     return head;
 }
-
 
 
 node* filter_list(node* head, int op, long value, comparison_f f)
@@ -145,53 +134,6 @@ int save_to_array(node* list, name_distance** arr)
     }
 
 }
-
-
-/*
-    remove node from the front of list
-*/
-node* remove_front(node* head)
-{
-    if(head == NULL)
-        return NULL;
-    node *front = head;
-    head = head->next;
-    front->next = NULL;
-    /* is this the last node in the list */
-    if(front == head)
-        head = NULL;
-    free(front);
-    return head;
-}
-
-/*
-    remove node from the back of the list
-*/
-node* remove_back(node* head)
-{
-    if(head == NULL)
-        return NULL;
-
-    node *cursor = head;
-    node *back = NULL;
-    while(cursor->next != NULL)
-    {
-        back = cursor;
-        cursor = cursor->next;
-    }
-
-    if(back != NULL)
-        back->next = NULL;
-
-    /* if this is the last node in the list*/
-    if(cursor == head)
-        head = NULL;
-
-    free(cursor);
-
-    return head;
-}
-
 
 /*
     remove all element of the list

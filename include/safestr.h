@@ -1,4 +1,4 @@
-/* This file is part of FileDistance
+/* This file is part of filedistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify

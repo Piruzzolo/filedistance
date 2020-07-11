@@ -1,4 +1,4 @@
-/* This file is part of FileDistance
+/* This file is part of filedistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 
 #define BUFSIZE 256
 
-#define MB 1000000 // bytes
+#define MB 1024*1024 // bytes
 
 #define MAX_MAP 10*MB
 

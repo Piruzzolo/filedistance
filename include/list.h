@@ -1,4 +1,4 @@
-/* This file is part of FileDistance
+/* This file is part of filedistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -56,19 +56,6 @@ node* filter_list(node* head, int op, long value, comparison_f f);
 */
 void traverse_list(node* head, callback_t f);
 
-/*
-    remove node from the front of list
-*/
-node* remove_front(node* head);
-
-/*
-    remove node from the back of the list
-*/
-node* remove_back(node* head);
-
-/*
-    remove all element of the list
-*/
 void list_free(node *head);
 /*
     return the number of elements in the list

@@ -1,4 +1,4 @@
-/* //////////// Adattato dai sorgenti di FreeBSD ////////////
+/* //////////////// Adapted from FreeBSD sources ////////////////
 
 /*	$OpenBSD: strlcpy.c,v 1.12 2015/01/15 03:54:12 millert Exp $	*/
 

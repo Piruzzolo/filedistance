@@ -1,4 +1,4 @@
-/* This file is part of FileDistance
+/* This file is part of filedistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -55,13 +55,13 @@ void hello()
 
 void print_usage()
 {
-    printf("                                                              \n");
-    printf(" Usage: filedistance distance file1 file2 [output]            \n");
-    printf("        filedistance apply inputfile filem outputfile         \n");
-    printf("        filedistance search inputfile dir                     \n");
-    printf("        filedistance searchall inputfile dir limit            \n");
-    printf("        filedistance help                                     \n");
-    printf("                                                              \n");
+    printf("                                                             \n");
+    printf("Usage: filedistance distance file1 file2 [output]            \n");
+    printf("       filedistance apply inputfile filem outputfile         \n");
+    printf("       filedistance search inputfile dir                     \n");
+    printf("       filedistance searchall inputfile dir limit            \n");
+    printf("       filedistance help                                     \n");
+    printf("                                                             \n");
 }
 
 
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 
     if (argc < 2)
     {
-        printf("Expected at least one argument\n\n");
+        printf("Expected at least one argument\n");
         print_usage();
         exit(EXIT_FAILURE);
     }
