@@ -25,16 +25,6 @@
 
 #define BUFSIZE 256
 
-int manhattanDistance(int x1, int y1, int x2, int y2)
-{
-    return abs(x1 - x2) + abs(y1 - y2);
-}
-
-bool isOutCell(i, j, n, m)
-{
-    return 2 * min(manhattanDistance(i, j, 0, n),manhattanDistance(i, j, m, 0)) <= n;
-}
-
 
 void print_edit(const edit* e, FILE* outfile)
 {
@@ -74,16 +64,12 @@ void print_edit(const edit* e, FILE* outfile)
 }
 
 
-unsigned int levenshtein_matrix_calculate(edit** mat, const char* str1, size_t len1, const char *str2, size_t len2)
+unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, const char *str2, size_t len2)
 {
-    unsigned int i, j;
-    for (j = 1; j <= len2; j++)
+    for (int j = 1; j <= len2; j++)
     {
-        for (i = 1; i <= len1; i++)
+        for (int i = 1; i <= len1; i++)
         {
-            //if (isOutCell(j, i, len2, len1))
-            //    continue;
-
             unsigned int substitution_cost;
             unsigned int del = 0, ins = 0, subst = 0;
             unsigned int best;
@@ -176,10 +162,10 @@ edit** levenshtein_matrix_create(size_t len1, size_t len2)
 
 int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, size_t l2, edit** script)
 {
-    unsigned int distance;
+    unsigned int dist;
 
     edit** mat = NULL;
-    edit* head = NULL;
+
 
     /* degenerate cases */
     if (l1 == 0)
@@ -201,26 +187,29 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
     }
 
     /* Main algorithm */
-    distance = levenshtein_matrix_calculate(mat, str1, l1, str2, l2);
-    /* Read back the edit script */
-    *script = malloc(distance * sizeof(edit));
+    dist = levenshtein_fill_matrix(mat, str1, l1, str2, l2);
 
-    if (*script)
+    /* Read back the edit script */
+    *script = malloc(dist * sizeof(edit));
+
+    if (!(*script))
     {
-        unsigned int i = distance - 1;
-        for (head = &mat[l1][l2]; head->prev != NULL; head = head->prev)
-        {
-            if (head->operation != NONE)
-            {
-                memcpy(*script + i, head, sizeof(edit));
-                i--;
-            }
-        }
+        dist = 0;
     }
     else
     {
-        distance = 0;
+        unsigned int i = dist - 1;
+        edit* head = NULL;
+        for (head = &mat[l1][l2]; head->prev != NULL; head = head->prev)
+        {
+            if (head->operation == NONE)
+                continue;
+
+            memcpy(*script + i, head, sizeof(edit));
+            i--;
+        }
     }
+
 
     /* Clean up */
     for (int i = 0; i <= l1; i++)
@@ -230,7 +219,7 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
 
     free(mat);
 
-    return distance;
+    return dist;
 }
 
 
@@ -244,16 +233,16 @@ void append_script_file(FILE* file, edit* script, size_t len)
 
 int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
 {
-    FILE* f1 = fopen(file1, "r" );
-    FILE* f2 = fopen(file2, "r" );
-    FILE* out = fopen(outfile, "w+");
-
     char buffer1[BUFSIZE];
     char buffer2[BUFSIZE];
 
     edit* script = NULL;
 
     int dist = 0;
+
+    FILE* f1 = fopen(file1, "r" );
+    FILE* f2 = fopen(file2, "r" );
+    FILE* out = fopen(outfile, "w+");
 
     if (f1 != NULL && f2 != NULL)
     {

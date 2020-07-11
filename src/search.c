@@ -27,11 +27,15 @@
 #include "../include/search.h"
 #include "../include/list.h"
 #include "../include/distance.h"
-
-char* inputFile;
-node* list = NULL;
+#include "../include/list_namedistance.h"
 
 #define MAX_OPEN_FD 8 // max dirs open at the same time
+
+char* inputFile;
+
+node* list = NULL;
+
+long lim = INT_MAX;
 
 bool compare_fun(void* pVoid, long op, int value)
 {
@@ -82,7 +86,6 @@ int min_list_file_distance(node* head)
     return min;
 }
 
-long lim = INT_MAX;
 
 int add_file(const char *fname, const struct stat *st, int type)
 {
@@ -96,7 +99,6 @@ int add_file(const char *fname, const struct stat *st, int type)
         /* dont't process */
         return 0;
     }
-
 
     int distance = levenshtein_file_distance(fname, inputFile);
     if (distance < 0)
@@ -126,12 +128,12 @@ int add_file(const char *fname, const struct stat *st, int type)
     if (list == NULL)
     {
         /* create list if first element */
-        list = create(fd, NULL);
+        list = list_create(fd, NULL);
     }
     else
     {
         /* append data to list */
-        append(list, fd);
+        list_append(list, fd);
     }
 
     return 0;
@@ -190,10 +192,10 @@ int search_min(const char* f, const char* dir)
     int min = min_list_file_distance(list);
 
     /* filter list in place, keep elems w/ distance = min */
-    node* filterd = filter_list(list, EQUAL_TO, min, compare_fun);
+    node* filterd = list_filter(list, EQUAL_TO, min, compare_fun);
 
     /* print filenames */
-    traverse_list(filterd, (callback_t) print_node_name);
+    list_traverse(filterd, (callback_t) print_node_name);
 
     /* frees up the list */
     list_free(filterd);
@@ -227,9 +229,9 @@ int search_all(const char* f, const char* dir, long limit)
     }
 
     /* filter list in place, keep elems w/ distance <= limit */
-    node* filtered = filter_list(list, EQ_LESS_THAN, limit, compare_fun);
+    node* filtered = list_filter(list, EQ_LESS_THAN, limit, compare_fun);
 
-    int len = count(filtered);
+    int len = list_count(filtered);
 
     /* no files found, return */
     if (len <= 0)
@@ -238,7 +240,7 @@ int search_all(const char* f, const char* dir, long limit)
     name_distance* arr = NULL;
 
     /* save list to array */
-    save_to_array(filtered, &arr);
+    list_namedistance_save_to_array(filtered, &arr);
 
     /* free list */
     list_free(filtered);

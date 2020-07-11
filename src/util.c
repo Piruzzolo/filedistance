@@ -23,6 +23,11 @@
 #include "../include/util.h"
 
 
+int min(int x, int y)
+{
+    return (x < y) ? x : y;
+}
+
 int minmin(int x, int y, int z)
 {
     return min(min(x, y), z);
@@ -76,8 +81,3 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
     return 0;
 }
 
-
-int min(int x, int y)
-{
-    return (x < y) ? x : y;
-}

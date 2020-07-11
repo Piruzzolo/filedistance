@@ -27,14 +27,15 @@
 
     return the newly created node
 */
-node* create(void* data, node* next)
+node* list_create(void* data, node* next)
 {
-    node* new_node = (node*)malloc(sizeof(node));
-    if(new_node == NULL)
+    node* new_node = (node*) malloc(sizeof(node));
+    if (new_node == NULL)
     {
-        printf("Error creating a new node.\n");
+        printf("Error creating a new node.\n"); // todo
         exit(0);
     }
+
     new_node->data = data;
     new_node->next = next;
 
@@ -44,9 +45,9 @@ node* create(void* data, node* next)
 /*
     add a new node at the end of the list
 */
-node* append(node* head, void* data)
+node* list_append(node* head, void* data)
 {
-    if(head == NULL)
+    if (head == NULL)
         return NULL;
     /* go to the last node */
     node *cursor = head;
@@ -56,14 +57,14 @@ node* append(node* head, void* data)
     }
 
     /* create a new node */
-    node* new_node = create(data,NULL);
+    node* new_node = list_create(data,NULL);
     cursor->next = new_node;
 
     return head;
 }
 
 
-node* filter_list(node* head, int op, long value, comparison_f f)
+node* list_filter(node* head, int op, long value, comparison_f f)
 {
     if (head == NULL)
     {
@@ -71,7 +72,7 @@ node* filter_list(node* head, int op, long value, comparison_f f)
     }
     if (f(head->data, op, value))
     {
-        head->next = filter_list(head->next, op, value, f);
+        head->next = list_filter(head->next, op, value, f);
         return head;
     }
     else
@@ -79,14 +80,14 @@ node* filter_list(node* head, int op, long value, comparison_f f)
         node* next = head->next;
         free(head);
 
-        return filter_list(next, op, value, f);
+        return list_filter(next, op, value, f);
     }
 }
 
 /*
     traverse the linked list
 */
-void traverse_list(node* head, callback_t f)
+void list_traverse(node* head, callback_t f)
 {
     node* cursor = head;
     while (cursor != NULL)
@@ -96,49 +97,10 @@ void traverse_list(node* head, callback_t f)
     }
 }
 
-int save_to_array(node* list, name_distance** arr)
-{
-    int cnt = count(list);
-    if (cnt)
-    {
-        *arr = (name_distance*) calloc(cnt, sizeof(name_distance));
-        node* cursor = list;
-        int i = 0;
-        while (cursor != NULL)
-        {
-            name_distance* nd = (name_distance*) (cursor->data);
-            int dist = nd->distance;
-            char* entry = malloc(sizeof(nd->filename));
-            if (entry)
-            {
-                // copy & detect truncation
-                if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
-                {
-                    // error
-                    return -1;
-                }
-            }
-
-            (*arr)[i].distance = dist;
-            strlcpy((*arr)[i].filename, entry, sizeof(nd->filename));
-
-            cursor = cursor->next;
-            i++;
-        }
-
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
-
-}
-
 /*
     remove all element of the list
 */
-void list_free(node *head)
+void list_free(node* head)
 {
     node *cursor, *tmp;
 
@@ -154,12 +116,13 @@ void list_free(node *head)
         }
     }
 }
+
 /*
     return the number of elements in the list
 */
-int count(node *head)
+int list_count(node* head)
 {
-    node *cursor = head;
+    node* cursor = head;
     int c = 0;
     while(cursor != NULL)
     {

@@ -45,24 +45,22 @@ typedef void (*callback_t)(node* data);
 
 typedef bool (*comparison_f)(void* data, long op, int value);
 
-node* create(void* data, node* next);
+node* list_create(void* data, node* next);
 
-node* append(node* head, void* data);
+node* list_append(node* head, void* data);
 
-node* filter_list(node* head, int op, long value, comparison_f f);
+node* list_filter(node* head, int op, long value, comparison_f f);
 
 /*
     traverse the linked list
 */
-void traverse_list(node* head, callback_t f);
+void list_traverse(node* head, callback_t f);
 
 void list_free(node *head);
 /*
     return the number of elements in the list
 */
-int count(node *head);
-
-int save_to_array(node* list, name_distance** arr);
+int list_count(node *head);
 
 
 #endif //FILEDISTANCE_LIST_H
