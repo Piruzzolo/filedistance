@@ -238,29 +238,39 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
     edit* script = NULL;
 
-    int dist = 0;
+    int tot = 0;
 
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
-    FILE* out = fopen(outfile, "w");
+    FILE* out = fopen(outfile, "rw");
 
     if (f1 != NULL && f2 != NULL)
     {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
+        while (true)
         {
-            int distance = 0;
+            fgets(buffer1, BUFSIZE, f1) ;
+            fgets(buffer2, BUFSIZE, f2);
+
+            int curr = 0;
 
             if (strlen(buffer1) < strlen(buffer2))
             {
-                distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
+                curr = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
             }
             else
             {
-                distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
+                curr = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
             }
 
-            append_script_file(out, script, distance);
-            dist += distance;
+            memset(buffer1, 0, sizeof(buffer1));
+            memset(buffer2, 0, sizeof(buffer2));
+
+            append_script_file(out, script, curr);
+
+            tot += curr;
+
+            if (feof(f1) && feof(f2))
+                break;
         }
     }
     else
@@ -268,7 +278,11 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
         return -1;
     }
 
-    printf("Distance: %d\n", dist);
+    int adds = count_occurrences(out, "ADD");
+    int dels = count_occurrences(out, "DEL");
+    int sets = count_occurrences(out, "SET");
+
+    printf("Distance: %d\n", tot);
 
     printf("Edit script saved successfully: %s\n", outfile);
 
