@@ -233,42 +233,37 @@ void append_script_file(FILE* file, edit* script, size_t len)
 
 int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
 {
-    char buffer1[BUFSIZE];
-    char buffer2[BUFSIZE];
-
     edit* script = NULL;
+    char buffer1[BUFSIZE + 1];
+    char buffer2[BUFSIZE + 1];
 
-    int dist = 0;
+    buffer1[BUFSIZE] = '\0';
+    buffer2[BUFSIZE] = '\0';
 
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
     FILE* out = fopen(outfile, "w");
 
-    if (f1 != NULL && f2 != NULL)
-    {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
-        {
-            int distance = 0;
+    int tot = 0;
 
-            if (strlen(buffer1) < strlen(buffer2))
-            {
-                distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
-            }
-            else
-            {
-                distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
-            }
-
-            append_script_file(out, script, distance);
-            dist += distance;
-        }
-    }
-    else
+    while (true)
     {
-        return -1;
+        size_t read1 = fread(buffer1, 1, BUFSIZE, f1);
+        size_t read2 = fread(buffer2, 1, BUFSIZE, f2);
+
+        buffer1[read1] = '\0';
+        buffer2[read2] = '\0';
+
+        int distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
+
+        append_script_file(out, script, distance);
+        tot += distance;
+
+        if (feof(f1) && feof(f2))
+            break;
     }
 
-    printf("Distance: %d\n", dist);
+    printf("Distance: %d\n", tot);
 
     printf("Edit script saved successfully: %s\n", outfile);
 
