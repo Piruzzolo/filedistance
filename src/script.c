@@ -242,7 +242,7 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
     FILE* f1 = fopen(file1, "r" );
     FILE* f2 = fopen(file2, "r" );
-    FILE* out = fopen(outfile, "w+");
+    FILE* out = fopen(outfile, "w");
 
     if (f1 != NULL && f2 != NULL)
     {
