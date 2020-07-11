@@ -152,12 +152,14 @@ bool parse_SET(FILE* file, edit* result)
 
 void apply_ADD(FILE* out, edit* toApply)
 {
+    /* add char in position (seek file out) */
     char b = toApply->c;
     fputc(b, out);
 }
 
 void apply_DEL(FILE* in)
 {
+    /* increment seek of input file */
     fseek(in, 1, SEEK_CUR);
 }
 
@@ -166,7 +168,7 @@ void apply_SET(FILE* out, FILE* in, edit* toApply)
     /* increment seek of input file */
     fseek(in, 1, SEEK_CUR);
 
-    /* change char in position (seek file out)*/
+    /* add char in position (seek file out) */
     char b = toApply->c;
     fputc(b, out);
 }

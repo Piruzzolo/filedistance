@@ -33,8 +33,8 @@ typedef enum
 typedef struct _edit
 {
     edit_type operation;
-    unsigned int pos;
     unsigned int score;
+    unsigned int pos;
     char c;
     struct _edit* prev;
 } edit;
