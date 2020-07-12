@@ -158,8 +158,50 @@ edit** levenshtein_matrix_create(size_t len1, size_t len2, int fd)
     return mat;
 }
 
+void backtrace(edit (*mat)[], int i, int j)
+{
+    if (i == 0 || j == 0)
+    {
+        return;
+    }
+
+    //if (mat[i][j].operation == SET)
+    //{
+    //    backtrace(mat, i-1, j-1);
+    //    printf("xx\n");
+    //}
+    //else if (mat[i][j].operation == ADD)
+    //{
+    //    backtrace(mat, i-1, j);
+    //}
+    //else
+    //{
+    //    backtrace(mat, i, j-1);
+    //}
+}
+
+// Function to reverse elements of an array
+void reverse(int arr[], int n)
+{
+    int aux[n];
+
+    for (int i = 0; i < n; i++) {
+        aux[n - 1 - i] = arr[i];
+    }
+
+    for (int i = 0; i < n; i++) {
+        arr[i] = aux[i];
+    }
+}
+
+
 int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, size_t l2, edit** script)
 {
+    if (l1 < l2)
+    {
+        return levenshtein_distance_script(str2, l2, str1, l1, script);
+    }
+
     unsigned int dist;
 
     /* create a temp file and get descriptor */
@@ -185,7 +227,7 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
                                                       MAP_SHARED,
                                                       fd,
                                                       0);
-    madvise(mat, size, MADV_WILLNEED);
+    //madvise(mat, size, MADV_SEQUENTIAL);
 
     if (mat == MAP_FAILED)
     {
@@ -194,8 +236,6 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
 
     for (int i = 0; i <= l1; i++)
     {
-        mat[i*l1+0].score = i;
-
         mat[i][0].score = i;
         mat[i][0].prev = NULL;
         mat[i][0].c = 0;
@@ -208,16 +248,11 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
         mat[0][j].c = 0;
     }
 
-    array[ i*m + j ]
-
     if (mat == NULL)
     {
         *script = NULL;
         return 0;
     }
-
-    /* Main algorithm */
-    //dist = levenshtein_fill_matrix(mat, str1, l1, str2, l2);
 
     for (int j = 1; j <= l2; j++)
     {
@@ -265,6 +300,7 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
                 else
                 {
                     mat[i][j].operation = NONE;
+
                 }
                 mat[i][j].prev = &mat[i - 1][j - 1];
             }
@@ -293,16 +329,48 @@ int levenshtein_distance_script(const char* str1, size_t l1, const char* str2, s
             memcpy(*script + i, head, sizeof(edit));
             i--;
         }
+//
+
+
+       //unsigned int i = l1;
+       //unsigned int j = l2;
+       //unsigned int index = dist - 1;
+
+       //for (int cnt = 0; cnt < dist; cnt++)
+       //{
+       //    if (mat[i][j].operation == DEL)
+       //    {
+       //        memcpy(*script + index, &mat[i][j], sizeof(edit));
+       //        index--;
+       //        //printf("DEL\n");
+       //        i = i-1;
+       //    }
+       //    else if (mat[i][j].operation == ADD)
+       //    {
+       //        memcpy(*script + index, &mat[i][j], sizeof(edit));
+       //        index--;
+       //        //printf("ADD\n");
+       //        j = j-1;
+       //    }
+       //    else if (mat[i][j].operation == SET)
+       //    {
+       //        memcpy(*script + index, &mat[i][j], sizeof(edit));
+       //        index--;
+       //        //printf("SET\n");
+       //        i = i-1;
+       //        j = j-1;
+       //    }
+       //    else // NONE
+       //    {
+       //        ss++;
+       //        i = i-1;
+       //        j = j-1;
+       //    }
+//////
+       //}
+
+
     }
-
-
-    ///* Clean up */
-    //for (int i = 0; i <= l1; i++)
-    //{
-    //    free(mat[i]);
-    //}
-
-    //free(mat);
 
     return dist;
 }
@@ -318,7 +386,7 @@ void append_script_file(FILE* file, edit* script, size_t len)
 
 int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
 {
-#ifdef MMAP
+
     char buffer1[BUFSIZE];
     char buffer2[BUFSIZE];
 
@@ -362,58 +430,58 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
     fclose(f2);
     fclose(out);
 
-#endif
-
-    char* buffer1 = NULL;
-    char* buffer2 = NULL;
-
-    edit* script = NULL;
-
-    int dist = 0;
-
-    struct stat st1;
-    stat(file1, &st1);
-    int size1 = st1.st_size;
-
-    struct stat st2;
-    stat(file2, &st2);
-    int size2 = st2.st_size;
-
-    int f1 = open(file1, O_RDONLY);
-    int f2 = open(file2, O_RDONLY);
-
-    FILE* out = fopen(outfile, "w");
-
-    if (f1 != -1 && f2 != -1)
-    {
-        buffer1 = mmap(NULL, size1, PROT_READ, MAP_SHARED, f1,0);
-        buffer2 = mmap(NULL, size2, PROT_READ, MAP_SHARED, f2,0);
-
-        dist = levenshtein_distance_script(buffer1, size1, buffer2, size2, &script);
-
-        for (int i = 0; i < dist; i++)
-        {
-            print_edit(&script[i], out);
-        }
-
-        append_script_file(out, script, dist);
-    }
-    else
-    {
-        return -1;
-    }
-
-    printf("Distance: %d\n", dist);
-
-    printf("Edit script saved successfully: %s\n", outfile);
-
-    munmap(buffer1, size1);
-    munmap(buffer2, size2);
-
-    close(f1);
-    close(f2);
-
     return 0;
+
+    //char* buffer1 = NULL;
+    //char* buffer2 = NULL;
+//
+    //edit* script = NULL;
+//
+    //int dist = 0;
+//
+    //struct stat st1;
+    //stat(file1, &st1);
+    //int size1 = st1.st_size;
+//
+    //struct stat st2;
+    //stat(file2, &st2);
+    //int size2 = st2.st_size;
+//
+    //int f1 = open(file1, O_RDONLY);
+    //int f2 = open(file2, O_RDONLY);
+//
+    //FILE* out = fopen(outfile, "w");
+//
+    //if (f1 != -1 && f2 != -1)
+    //{
+    //    buffer1 = mmap(NULL, size1, PROT_READ, MAP_SHARED, f1,0);
+    //    buffer2 = mmap(NULL, size2, PROT_READ, MAP_SHARED, f2,0);
+//
+    //    dist = levenshtein_distance_script(buffer1, size1, buffer2, size2, &script);
+//
+    //    for (int i = 0; i < dist; i++)
+    //    {
+    //        print_edit(&script[i], out);
+    //    }
+//
+    //    append_script_file(out, script, dist);
+    //}
+    //else
+    //{
+    //    return -1;
+    //}
+//
+    //printf("Distance: %d\n", dist);
+//
+    //printf("Edit script saved successfully: %s\n", outfile);
+//
+    //munmap(buffer1, size1);
+    //munmap(buffer2, size2);
+//
+    //close(f1);
+    //close(f2);
+//
+    //return 0;
 
 }
 
