@@ -1,4 +1,4 @@
-/* This file is part of filedistance
+/* This file is part of FileDistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -61,9 +61,7 @@ u_int32_t bytes_to_uint32(char* buf)
 
 bool parse_ADD(FILE* file, edit* result)
 {
-    /* save seek for rollback */
-    long oldseek = ftell(file);
-
+    long p = ftell(file);
     if (result == NULL)
     {
         return false;
@@ -71,30 +69,22 @@ bool parse_ADD(FILE* file, edit* result)
 
     char buf[MAX_SIZE_ITEM];
     fread(buf, MAX_SIZE_ITEM, 1, file);
-
     if (strncmp(buf, "ADD", 3) == 0)
     {
         result->operation = ADD;
-
-        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
-
         result->c = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
 
-    /* rollback seek */
-    fseek(file, oldseek, SEEK_SET);
-
+    fseek(file, p, SEEK_SET);
     return false;
 }
 
 bool parse_DEL(FILE* file, edit* result)
 {
-    /* save seek for rollback */
-    long oldseek = ftell(file);
-
+    long p = ftell(file);
     if (result == NULL)
     {
         return false;
@@ -102,73 +92,56 @@ bool parse_DEL(FILE* file, edit* result)
 
     char buf[MAX_SIZE_ITEM - 1];
     fread(buf, MAX_SIZE_ITEM - 1, 1, file);
-
     if (strncmp(buf, "DEL", 3) == 0)
     {
         result->operation = DEL;
-
-        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
         return true;
     }
 
-    /* rollback seek */
-    fseek(file, oldseek, SEEK_SET);
-
+    fseek(file, p, SEEK_SET);
     return false;
 }
 
 bool parse_SET(FILE* file, edit* result)
 {
-    /* save seek for rollback */
     long p = ftell(file);
-
-    if (result == NULL)
+    if (result == NULL || p == EOF)
     {
         return false;
     }
 
     char buf[MAX_SIZE_ITEM];
-    fread(buf, MAX_SIZE_ITEM, 1, file);
 
+    fread(buf, MAX_SIZE_ITEM, 1, file);
     if (strncmp(buf, "SET", 3) == 0)
     {
         result->operation = SET;
-
-        /* big endian */
         result->pos = ntohl(bytes_to_uint32(&buf[3]));
-
         result->c = buf[MAX_SIZE_ITEM - 1];
 
         return true;
     }
 
-    /* rollback seek */
     fseek(file, p, SEEK_SET);
-
     return false;
 }
 
 void apply_ADD(FILE* out, edit* toApply)
 {
-    /* add char in position (seek file out) */
-    char b = toApply->c;
-    fputc(b, out);
+    char c = toApply->c;
+    fputc(c, out);
 }
 
-void apply_DEL(FILE* in)
+void apply_DEL(FILE* in, edit* toApply)
 {
-    /* increment seek of input file */
-    fseek(in, 1, SEEK_CUR);
+    fseek(in, toApply->pos + 1, SEEK_SET);
 }
 
 void apply_SET(FILE* out, FILE* in, edit* toApply)
 {
-    /* increment seek of input file */
-    fseek(in, 1, SEEK_CUR);
-
-    /* add char in position (seek file out) */
+    fseek(in, toApply->pos + 1, SEEK_SET);
     char b = toApply->c;
     fputc(b, out);
 }
@@ -179,6 +152,7 @@ int get_num_ops(FILE* script)
            count_occurrences(script, "DEL") +
            count_occurrences(script, "SET");
 }
+
 
 int apply_edit_script(const char* infile, const char* filem, const char* outfile)
 {
@@ -205,21 +179,30 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
-    int numOps = get_num_ops(scriptfile);
+    struct stat st2;
+    stat(infile, &st2);
+    int size_infile = st2.st_size;
 
-    for (int i = 0; i < numOps; i++)
+    int numOps = get_num_ops(scriptfile) - 1;
+
+    rewind(in);
+    rewind(scriptfile);
+    rewind(out);
+
+    edit todo;
+
+    for (int i = 0; i < 20; i++)
+    //while (!feof(scriptfile))
     {
-        edit todo;
-
         if (parse_ADD(scriptfile, &todo))
         {
-            file_copy(in, out, todo.pos - ftell(in));
+            file_copy(in, out, todo.pos - ftell(in) + 1);
             apply_ADD(out, &todo);
         }
         else if (parse_DEL(scriptfile, &todo))
         {
             file_copy(in, out, todo.pos - ftell(in));
-            apply_DEL(in);
+            apply_DEL(in, &todo);
         }
         else if (parse_SET(scriptfile, &todo))
         {
@@ -234,6 +217,8 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
 
         memset(&todo, 0, sizeof(todo));
     }
+
+    file_copy(in, out, size_infile - ftell(in));
 
     fclose(in);
     fclose(scriptfile);

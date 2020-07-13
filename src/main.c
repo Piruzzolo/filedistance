@@ -119,7 +119,7 @@ int main(int argc, char** argv)
     {
         if (argc == 5)
         {
-            if (apply_edit_script(argv[2], argv[3], argv[4]))
+            if (apply_edit_script(argv[2], argv[3], argv[4]) == 0)
             {
                 exit(EXIT_SUCCESS);
             }

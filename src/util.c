@@ -68,8 +68,10 @@ int count_occurrences(FILE* file, const char* word)
 
 int file_copy(FILE* in, FILE* out, unsigned int len)
 {
-    char c;
+    if (len == 0)
+        return 0;
 
+    char c;
     for (int i = 0; i < len; i++)
     {
         c = getc(in);
@@ -80,4 +82,3 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
 
     return 0;
 }
-
