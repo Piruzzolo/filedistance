@@ -27,17 +27,19 @@ enum {
 
 
 /// Save the list to the array arr
+///
 /// \param list the list to save
 /// \param arr the array
 /// \return an error code
 int list_namedistance_save_to_array(node* list, name_distance** arr);
 
 /// Find min of distances
+///
 /// \param list the list to go through
 /// \return the min distance found
 int list_namedistance_min(node* list);
 
 
-void list_namedistance_print_name(node* node);
+void list_namedistance_print_name(node* list);
 
 #endif //FILEDISTANCE_LIST_NAMEDISTANCE_H

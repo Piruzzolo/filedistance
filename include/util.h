@@ -23,6 +23,7 @@
 
 
 /// Calculates min between x and y
+///
 /// \param x first integer
 /// \param y second integer
 /// \return the min
@@ -30,6 +31,7 @@ int min(int x, int y);
 
 
 /// Calculates the min between 3 values
+///
 /// \param x first integer
 /// \param y second integer
 /// \param z third integer
@@ -38,6 +40,7 @@ int minmin(int x, int y, int z);
 
 
 /// Copies len bytes from in to out, starting off from their current seek
+///
 /// \param in the file to copy from
 /// \param out the file to copy to
 /// \param len amount of bytes to copy
@@ -46,6 +49,7 @@ int file_copy(FILE* in, FILE* out, unsigned int len);
 
 
 /// Counts the occurrences of word in file
+///
 /// \param file the file to search into
 /// \param word the string to search
 /// \return the count

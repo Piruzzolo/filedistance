@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 /// Finds the Levenshtein distance between str1 and str2
+///
 /// \param str1 the first string
 /// \param str2 the second string
 /// \return

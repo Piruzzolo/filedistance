@@ -24,6 +24,7 @@
 
 /// Search files in dir (and subdirs) with distance from inputfile <= limit,
 /// printing them to stdout sorted by length ascending, filename ascending
+///
 /// \param inputfile the file to compare against
 /// \param dir the directory to traverse
 /// \param limit the limit on the distance
@@ -32,6 +33,7 @@ int search_all(const char* inputfile, const char* dir, long limit);
 
 /// Search files in dir (and subdirs) with distance from inputfile == limit,
 /// printing them to stdout sorted by length ascending, filename ascending
+///
 /// \param inputfile the file to compare against
 /// \param dir the directory to traverse
 /// \param limit the limit on the distance

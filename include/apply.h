@@ -29,7 +29,7 @@ enum {
 void apply_print_err(int err);
 
 /**
- * @brief Applies the edit operations in file scriptfile to infile, writing the result to outfile
+ * @brief Applies the edit operations in filem to infile, writing the result to outfile
  */
 int apply_edit_script(const char* infile, const char* filem, const char* outfile);
 

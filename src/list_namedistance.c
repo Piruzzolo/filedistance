@@ -85,9 +85,9 @@ int list_namedistance_min(node* list)
     return min;
 }
 
-void list_namedistance_print_name(node* node)
+void list_namedistance_print_name(node* list)
 {
-    name_distance* nd = (name_distance*) node->data;
+    name_distance* nd = (name_distance*) list->data;
 
     printf("%s\n", nd->filename);
 }
