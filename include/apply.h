@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 enum {
-    EEMPTYSCRIPT = 1000,
+    EEMPTYSCRIPT,
     ECANTOPEN,
     ECORRUPTD
 } applyErr_t;

@@ -10,6 +10,16 @@ set(CMAKE_C_STANDARD 11)
 #include_directories(include)
 
 add_executable(filedistance
+        include/name_distance.h
+        include/list_namedistance.h
+        include/distance.h
+        include/search.h
+        include/apply.h
+        include/script.h
+        include/util.h
+        include/list.h
+        include/safe_str/strlcpy.h
+
         src/main.c
         src/distance.c
         src/search.c
@@ -18,13 +28,14 @@ add_executable(filedistance
         src/util.c
         src/list.c
         src/list_namedistance.c
-        src/safe_str/strlcpy.c
+        src/name_distance.c
+        src/safe_str/strlcpy.c)
 
-        include/list_namedistance.h
-        include/distance.h
-        include/search.h
-        include/apply.h
-        include/script.h
-        include/util.h
-        include/list.h
-        include/safe_str/strlcpy.h)
+
+
+
+
+
+
+
+

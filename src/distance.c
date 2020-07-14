@@ -22,7 +22,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
-#include "../include/util.h" // minmin, min
+#include "../include/util.h" // min, minmin
 
 #define BUFSIZE 256
 
@@ -45,6 +45,7 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
 
     int* prev = calloc((len2 + 1), sizeof(int));
     int* curr = calloc((len2 + 1), sizeof(int));
+
     if (!curr || !prev)
         return -1;
 

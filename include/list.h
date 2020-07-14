@@ -32,7 +32,7 @@ typedef struct node
     struct node* next;
 } node;
 
-enum
+typedef enum
 {
     EQUAL_TO,
     LESS_THAN,
