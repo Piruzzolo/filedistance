@@ -30,6 +30,7 @@
 #define BUFSIZE 256
 #define MAX_SIZE_ITEM 8
 
+
 void apply_print_err(int err)
 {
     switch (err)
@@ -49,15 +50,18 @@ void apply_print_err(int err)
             printf("ERROR: Script file is invalid or corrupted.\n");
             break;
         }
+
         default:
             return;
     }
 }
 
+
 u_int32_t bytes_to_uint32(char* buf)
 {
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }
+
 
 bool parse_ADD(FILE* file, edit* result)
 {
@@ -68,7 +72,7 @@ bool parse_ADD(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM];
-    fread(buf, MAX_SIZE_ITEM, 1, file);
+    fread(buf, MAX_SIZE_ITEM, 1, file);// todo check fread read bytes
     if (strncmp(buf, "ADD", 3) == 0)
     {
         result->operation = ADD;
@@ -91,7 +95,7 @@ bool parse_DEL(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM - 1];
-    fread(buf, MAX_SIZE_ITEM - 1, 1, file);
+    fread(buf, MAX_SIZE_ITEM - 1, 1, file);// todo check fread read bytes
     if (strncmp(buf, "DEL", 3) == 0)
     {
         result->operation = DEL;
@@ -114,7 +118,7 @@ bool parse_SET(FILE* file, edit* result)
 
     char buf[MAX_SIZE_ITEM];
 
-    fread(buf, MAX_SIZE_ITEM, 1, file);
+    fread(buf, MAX_SIZE_ITEM, 1, file); // todo check fread read bytes
     if (strncmp(buf, "SET", 3) == 0)
     {
         result->operation = SET;
@@ -161,6 +165,7 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
+    /* open infile and scriptfile read, open outfile write */
     FILE* in         = fopen(infile,  "r");
     FILE* scriptfile = fopen(filem,   "r");
     FILE* out        = fopen(outfile, "w");
@@ -171,6 +176,7 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
+    /* fail if script file size == 0 */
     struct stat st;
     stat(filem, &st);
     if (st.st_size == 0)
@@ -179,21 +185,27 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         return -1;
     }
 
+    /* get size of infile */
     struct stat st2;
     stat(infile, &st2);
     int size_infile = st2.st_size;
 
     int numOps = get_num_ops(scriptfile) - 1;
 
+    /* ensure seeks are at a known value, begin */
     rewind(in);
     rewind(scriptfile);
     rewind(out);
 
     edit todo;
 
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++) // todo get_num_ops o gestire con un while...
     //while (!feof(scriptfile))
     {
+        /* try to parse the command, save the result in todo,
+         * copy bytes from last position to todo's position
+         * then apply the operation read */
+
         if (parse_ADD(scriptfile, &todo))
         {
             file_copy(in, out, todo.pos - ftell(in) + 1);
@@ -215,11 +227,14 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
             return -1;
         }
 
+        /* clean up todo for next cycle */
         memset(&todo, 0, sizeof(todo));
     }
 
+    /* copy from infile's seek its EOF */
     file_copy(in, out, size_infile - ftell(in));
 
+    /* close files */
     fclose(in);
     fclose(scriptfile);
     fclose(out);

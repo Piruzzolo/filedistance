@@ -160,7 +160,7 @@ int search_min(const char* f, const char* dir)
 
     inputFile = (char*) f;
 
-    /* dir traversal, 8 open dirs max */
+    /* dir traversal, MAX_OPEN_FD open dirs max */
     int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {
@@ -201,7 +201,7 @@ int search_all(const char* f, const char* dir, long limit)
 
     inputFile = (char*) f;
 
-    /* dir traversal, 8 open dirs max */
+    /* dir traversal, MAX_OPEN_FD open dirs max */
     int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {

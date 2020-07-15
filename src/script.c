@@ -25,6 +25,7 @@
 #define KB 1024
 #define BUFSIZE 10*KB
 
+
 int manhattanDistance(int x1, int y1, int x2, int y2)
 {
     return abs(x1 - x2) + abs(y1 - y2);
@@ -63,7 +64,7 @@ void print_edit(const edit* e, FILE* outfile)
             const char op[] = "ADD";
             unsigned int n = htonl(e->pos);
             char b = e->c;
-            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
             fwrite(&b, 1, 1, outfile);
             break;
@@ -72,20 +73,21 @@ void print_edit(const edit* e, FILE* outfile)
         {
             const char op[] = "DEL";
             unsigned int n = htonl(e->pos);
-            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
             break;
         }
         case SET:
         {
-            char op[] = "SET";
+            const char op[] = "SET";
             unsigned int n = htonl(e->pos);
             char b = e->c;
-            fwrite(op, sizeof(char), 3, outfile);
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
             fwrite(&b, 1, 1, outfile);
             break;
         }
+
         default:
             return;
     }

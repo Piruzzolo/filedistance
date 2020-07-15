@@ -38,12 +38,6 @@ int search_all(const char* inputfile, const char* dir, long limit);
 /// \param dir the directory to traverse
 /// \param limit the limit on the distance
 /// \return 0 if succeeded, -1 otherwise
-int search_min(const char* filename, const char* dir); // TODO!!!!
-
-
-
-
-
-
+int search_min(const char* filename, const char* dir);
 
 #endif //UNTITLED_SEARCH_H

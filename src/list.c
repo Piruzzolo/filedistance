@@ -45,12 +45,12 @@ node* list_create(void* data, node* next)
 /*
     add a new node at the end of the list
 */
-node* list_append(node* head, void* data)
+node* list_append(node* list, void* data)
 {
-    if (head == NULL)
+    if (list == NULL)
         return NULL;
     /* go to the last node */
-    node *cursor = head;
+    node *cursor = list;
     while (cursor->next != NULL)
     {
         cursor = cursor->next;
@@ -60,36 +60,34 @@ node* list_append(node* head, void* data)
     node* new_node = list_create(data,NULL);
     cursor->next = new_node;
 
-    return head;
+    return list;
 }
 
 
-node* list_filter(node* head, int op, long value, comparison_f f)
+node* list_filter(node* list, int op, long value, comparison_f f)
 {
-    if (head == NULL)
+    if (list == NULL)
     {
         return NULL;
     }
-    if (f(head->data, op, value))
+    if (f(list->data, op, value))
     {
-        head->next = list_filter(head->next, op, value, f);
-        return head;
+        list->next = list_filter(list->next, op, value, f);
+        return list;
     }
     else
     {
-        node* next = head->next;
-        free(head);
+        node* next = list->next;
+        free(list);
 
         return list_filter(next, op, value, f);
     }
 }
 
-/*
-    traverse the linked list
-*/
-void list_traverse(node* head, callback_t f)
+
+void list_traverse(node* list, callback_t f)
 {
-    node* cursor = head;
+    node* cursor = list;
     while (cursor != NULL)
     {
         f(cursor);
@@ -97,18 +95,17 @@ void list_traverse(node* head, callback_t f)
     }
 }
 
-/*
-    remove all element of the list
-*/
-void list_free(node* head)
-{
-    node *cursor, *tmp;
 
-    if(head != NULL)
+void list_free(node* list)
+{
+    node* cursor;
+    node* tmp;
+
+    if (list != NULL)
     {
-        cursor = head->next;
-        head->next = NULL;
-        while(cursor != NULL)
+        cursor = list->next;
+        list->next = NULL;
+        while (cursor != NULL)
         {
             tmp = cursor->next;
             free(cursor);
@@ -117,14 +114,12 @@ void list_free(node* head)
     }
 }
 
-/*
-    return the number of elements in the list
-*/
-int list_count(node* head)
+
+int list_count(node* list)
 {
-    node* cursor = head;
+    node* cursor = list;
     int c = 0;
-    while(cursor != NULL)
+    while (cursor != NULL)
     {
         c++;
         cursor = cursor->next;
