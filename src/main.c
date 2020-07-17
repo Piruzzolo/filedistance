@@ -40,7 +40,7 @@ bool hint_didumean(const char* command);
 
 void abort_handler()
 {
-    /* it's not advisable to call printf inside an interrupt */
+    /* it's not advisable to call printf inside an interrupt handler */
     write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
     exit(EXIT_FAILURE);
 }
