@@ -84,8 +84,11 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
 
     distance = prev[len2];
 
+    /* free & avoid double free */
     free(curr);
     free(prev);
+    curr = NULL;
+    prev = NULL;
 
     return distance;
 }

@@ -174,6 +174,7 @@ edit** levenshtein_create_matrix(size_t len1, size_t len2)
             }
 
             free(mat);
+            mat = NULL;
             return NULL;
         }
     }
@@ -209,7 +210,6 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     }
 
     edit** mat = levenshtein_create_matrix(len1, len2);
-
     if (!mat)
     {
         *script = NULL;
@@ -218,9 +218,7 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
 
     dist = levenshtein_fill_matrix(mat, str1, len1, str2, len2);
 
-
     *script = malloc(dist * sizeof(edit));
-
     if (!(*script))
     {
         dist = 0;
@@ -248,6 +246,7 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     }
 
     free(mat);
+    mat = NULL;
 
     return dist;
 }

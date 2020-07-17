@@ -29,37 +29,44 @@ int list_namedistance_save_to_array(node* list, name_distance** arr)
     {
         /* alloc array to save to */
         *arr = (name_distance*) calloc(cnt, sizeof(name_distance));
-
-        node* curr = list;
-        int index = 0;
-
-        /* for each item of the list */
-        while (curr != NULL)
+        if (*arr)
         {
-            /* get payload struct */
-            name_distance* nd = (name_distance*) (curr->data);
-            int dist = nd->distance;
+            node* curr = list;
+            int index = 0;
 
-            /* alloc arr[i] */
-            char* entry = malloc(sizeof(nd->filename));
-            if (entry)
+            /* for each item of the list */
+            while (curr != NULL)
             {
-                /* copy & detect truncation */
-                if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
+                /* get payload struct */
+                name_distance* nd = (name_distance*) (curr->data);
+                int dist = nd->distance;
+
+                /* alloc arr[i] */
+                char* entry = malloc(sizeof(nd->filename));
+                if (entry)
                 {
-                    return -1;
+                    /* copy & detect truncation */
+                    if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
+                    {
+                        return -1;
+                    }
                 }
+
+                /* set fields of arr[index] */
+                (*arr)[index].distance = dist;
+                strlcpy((*arr)[index].filename, entry, sizeof(nd->filename));
+
+                curr = curr->next;
+                index++;
             }
 
-            /* set fields of arr[index] */
-            (*arr)[index].distance = dist;
-            strlcpy((*arr)[index].filename, entry, sizeof(nd->filename));
-
-            curr = curr->next;
-            index++;
+            return 0;
+        }
+        else
+        {
+            return -1;
         }
 
-        return 0;
     }
     else
     {
@@ -88,6 +95,5 @@ int list_namedistance_min(node* list)
 void list_namedistance_print_name(node* list)
 {
     name_distance* nd = (name_distance*) list->data;
-
     printf("%s\n", nd->filename);
 }

@@ -70,6 +70,7 @@ node* list_filter(node* list, int op, long value, comparison_f f)
     {
         node* next = list->next;
         free(list);
+        list = NULL;
 
         return list_filter(next, op, value, f);
     }
