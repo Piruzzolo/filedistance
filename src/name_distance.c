@@ -20,7 +20,7 @@
 #include "../include/name_distance.h"
 
 
-void namedistance_print(name_distance nd)
+void namedistance_print(name_distance* nd)
 {
-    printf("%d %s\n", nd.distance, nd.filename);
+    printf("%d %s\n", nd->distance, nd->filename);
 }

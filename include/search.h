@@ -19,7 +19,6 @@
 #define SEARCH_H
 
 #include <stdio.h>
-#include <dirent.h>
 
 
 /// Search files in dir (and subdirs) with distance from inputfile <= limit,

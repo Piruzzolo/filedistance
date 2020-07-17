@@ -20,14 +20,14 @@
 
 #include <limits.h>
 
-typedef struct _name_distance
+typedef struct
 {
     int distance;
     char filename[PATH_MAX];
 } name_distance;
 
 
-void namedistance_print(name_distance nd);
+void namedistance_print(name_distance* nd);
 
 
 #endif //FILEDISTANCE_NAME_DISTANCE_H

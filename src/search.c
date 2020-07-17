@@ -189,12 +189,6 @@ int search_min(const char* f, const char* dir)
 }
 
 
-void print_fd(name_distance nd)
-{
-    printf("%d %s\n", nd.distance, nd.filename);
-}
-
-
 int search_all(const char* f, const char* dir, long limit)
 {
     if (!f || !dir)
@@ -238,7 +232,7 @@ int search_all(const char* f, const char* dir, long limit)
     /* print all */
     for (int i = 0; i < len; i++)
     {
-        print_fd(arr[i]);
+        namedistance_print(&arr[i]);
     }
 
     return 0;
