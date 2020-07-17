@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 
     if (strcmp(argv[1], "distance") == 0)
     {
+        /* distance file1 file2 */
         if (argc == 4)
         {
             time_t begin = time(NULL);
@@ -97,6 +98,7 @@ int main(int argc, char** argv)
             printf("TIME: %ld\n", end - begin );
             exit(EXIT_SUCCESS);
         }
+        /* distance file1 file2 output */
         else if (argc == 5)
         {
             int ret = levenshtein_file_distance_script(argv[3], argv[2],argv[4]);
@@ -117,6 +119,7 @@ int main(int argc, char** argv)
     }
     else if (strcmp(argv[1], "apply") == 0)
     {
+        /* apply inputfile filem outputfile */
         if (argc == 5)
         {
             if (apply_edit_script(argv[2], argv[3], argv[4]) == 0)
@@ -136,6 +139,7 @@ int main(int argc, char** argv)
     }
     else if (strcmp(argv[1], "search") == 0)
     {
+        /* search inputfile dir */
         if (argc == 4)
         {
             search_min(argv[2], argv[3]);
@@ -149,6 +153,7 @@ int main(int argc, char** argv)
     }
     else if (strcmp(argv[1], "searchall") == 0)
     {
+        /* searchall inputfile dir limit */
         if (argc == 5)
         {
             long limit = 0;

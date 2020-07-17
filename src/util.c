@@ -50,7 +50,10 @@ int count_occurrences(FILE* file, const char* word)
         for (int i = 1; i < len; ++i)
         {
             if ((ch = fgetc(file)) == EOF)
+            {
+                rewind(file);
                 return count;
+            }
 
             if ((char) ch != word[i])
             {
@@ -74,7 +77,7 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
     char c;
     for (int i = 0; i < len; i++)
     {
-        c = getc(in);
+        c = (char) getc(in);
         if (c == EOF)
             return -1;
         putc(c, out);

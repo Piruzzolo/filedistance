@@ -166,41 +166,43 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
     }
 
     /* open infile and scriptfile read, open outfile write */
+
     FILE* in         = fopen(infile,  "r");
     FILE* scriptfile = fopen(filem,   "r");
     FILE* out        = fopen(outfile, "w");
 
-    if (in == NULL || scriptfile == NULL || out == NULL)
+    if (!in || !scriptfile || !out)
     {
         errno = ECANTOPEN;
         return -1;
     }
 
     /* fail if script file size == 0 */
-    struct stat st;
-    stat(filem, &st);
-    if (st.st_size == 0)
+
+    struct stat st1;
+    stat(filem, &st1);
+    if (st1.st_size == 0)
     {
         errno = EEMPTYSCRIPT;
         return -1;
     }
 
     /* get size of infile */
+
     struct stat st2;
     stat(infile, &st2);
     int size_infile = st2.st_size;
 
-    int numOps = get_num_ops(scriptfile) - 1;
+    int numOps = get_num_ops(scriptfile);
 
     /* ensure seeks are at a known value, begin */
     rewind(in);
     rewind(scriptfile);
     rewind(out);
 
-    edit todo;
+    edit todo = {0};
 
-    for (int i = 0; i < 20; i++) // todo get_num_ops o gestire con un while...
-    //while (!feof(scriptfile))
+    for (int i = 0; i < 161; i++) // todo get_num_ops o gestire con un while...
     {
         /* try to parse the command, save the result in todo,
          * copy bytes from last position to todo's position
@@ -231,7 +233,7 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
         memset(&todo, 0, sizeof(todo));
     }
 
-    /* copy from infile's seek its EOF */
+    /* copy from infile's seek till its EOF */
     file_copy(in, out, size_infile - ftell(in));
 
     /* close files */

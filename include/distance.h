@@ -18,7 +18,7 @@
 #ifndef DISTANCE_H
 #define DISTANCE_H
 
-#include <stdio.h>
+#include <stddef.h> // size_t
 
 /// Finds the Levenshtein distance between str1 and str2
 ///
