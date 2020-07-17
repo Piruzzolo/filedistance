@@ -106,7 +106,7 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     stat(file2, &st2);
     int size2 = st2.st_size;
 
-    /* open files readonly */
+    /* open files read only */
     int f1 = open(file1, O_RDONLY);
     int f2 = open(file2, O_RDONLY);
 
@@ -120,6 +120,7 @@ int levenshtein_file_distance(const char* file1, const char* file2)
         madvise(buf1, MAX_MAP, MADV_SEQUENTIAL);
         madvise(buf2, MAX_MAP, MADV_SEQUENTIAL);
 
+        /* find distance */
         dist = levenshtein_dist(buf1, size1, buf2, size2);
     }
     else

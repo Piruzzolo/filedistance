@@ -33,7 +33,7 @@ enum {
 void apply_print_err(int err);
 
 
-/// Applies the filem edits to infile, outputting to oufile
+/// Applies the filem edits to infile, outputting to outfile
 ///
 /// \param infile the file to apply to
 /// \param filem edit script with commands

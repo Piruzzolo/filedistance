@@ -21,19 +21,12 @@
 #include "../include/list.h"
 
 
-/*
-    create a new node
-    initialize the data and next field
-
-    return the newly created node
-*/
 node* list_create(void* data, node* next)
 {
     node* new_node = (node*) malloc(sizeof(node));
-    if (new_node == NULL)
+    if (!new_node)
     {
-        printf("Error creating a new node.\n"); // todo
-        exit(0);
+        return NULL;
     }
 
     new_node->data = data;
@@ -42,9 +35,7 @@ node* list_create(void* data, node* next)
     return new_node;
 }
 
-/*
-    add a new node at the end of the list
-*/
+
 node* list_append(node* list, void* data)
 {
     if (list == NULL)

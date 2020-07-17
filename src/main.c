@@ -23,6 +23,7 @@
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "../include/distance.h"
 #include "../include/script.h"
@@ -32,20 +33,23 @@
 
 static char abortMsg[] = "\nCTRL-C received. Stop.\n";
 
+void parse_int_or_fail(const char* str, long* v);
+
+bool hint_didumean(const char* command);
+
+
 void abort_handler()
 {
-    // it's not advisable to call printf inside an interrupt
-    // handler cause it's not reentrant
+    /* it's not advisable to call printf inside an interrupt */
     write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
     exit(EXIT_FAILURE);
 }
 
-void parse_int_or_fail(const char* str, long* v);
 
 void hello()
 {
     printf("--------------------------------------------------------------\n");
-    printf(" FileDistance  Copyright (C) 2020  Marco Savelli              \n");
+    printf(" filedistance  Copyright (C) 2020  Marco Savelli              \n");
     printf(" This program comes with ABSOLUTELY NO WARRANTY.              \n");
     printf(" This is free software, and you are welcome to redistribute it\n");
     printf(" under certain conditions. See 'LICENSE' for details          \n");
@@ -69,12 +73,12 @@ int main(int argc, char** argv)
 {
     hello();
 
-    // handle CTRL-C
+    /* handle CTRL-C */
     signal(SIGINT, abort_handler);
 
     if (argc < 2)
     {
-        printf("Expected at least one argument\n");
+        printf("ERROR: expected at least one argument\n");
         print_usage();
         exit(EXIT_FAILURE);
     }
@@ -90,7 +94,7 @@ int main(int argc, char** argv)
 
             if (result < 0)
             {
-                printf("ERROR: Can't open the file(s).\n");
+                printf("ERROR: can't open the file(s).\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -113,7 +117,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            printf("ERROR: Wrong number of arguments for 'distance' command.\n");
+            printf("ERROR: wrong number of arguments for 'distance' command.\n");
             print_usage(); exit(EXIT_FAILURE);
         }
     }
@@ -167,6 +171,7 @@ int main(int argc, char** argv)
             print_usage(); exit(EXIT_FAILURE);
         }
     }
+    /* filedistance help */
     else if (strcmp(argv[1], "help") == 0)
     {
         if (argc == 2)
@@ -176,15 +181,39 @@ int main(int argc, char** argv)
     }
     else
     {
-        printf("ERROR: Command %s not valid.\n\n", argv[1]);
+        if (!hint_didumean(argv[1]))
+        {
+            printf("ERROR: Command %s not valid.\n\n", argv[1]);
+        }
+
         print_usage();
     }
-
 }
+
+
+bool hint_didumean(const char* command)
+{
+    if (strlen(command) != 0)
+    {
+        char cmds[][9] = {"distance", "search", "apply", "searchall"};
+        for (int i = 0; i < 4; i++)
+        {
+            int dist = levenshtein_dist(cmds[i], strlen(cmds[i]), command, strlen(command));
+            if (dist > 0 && dist <= 2)
+            {
+                printf("Command not correct, did you mean '%s'?\n", cmds[i]);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 
 void parse_int_or_fail(const char* str, long* v)
 {
-    char *endptr;
+    char* endptr;
     errno = 0;
     long val = strtol(str, &endptr, 10);
 
