@@ -227,8 +227,10 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     {
         unsigned int i = dist - 1;
         edit* curr;
+        int cnt = 0;
         for (curr = &mat[len1][len2]; curr->prev != NULL; curr = curr->prev)
         {
+            cnt++;
             if (curr->operation == NONE)
             {
                 continue;
@@ -300,6 +302,9 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
     printf("Distance: %d\n", tot);
 
     printf("Edit script saved successfully: %s\n", outfile);
+
+    free(script);
+    script = NULL;
 
     if (f1) fclose(f1);
     if (f2) fclose(f2);
