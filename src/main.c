@@ -49,10 +49,10 @@ void abort_handler()
 void hello()
 {
     printf("--------------------------------------------------------------\n");
-    printf(" filedistance  Copyright (C) 2020  Marco Savelli              \n");
-    printf(" This program comes with ABSOLUTELY NO WARRANTY.              \n");
-    printf(" This is free software, and you are welcome to redistribute it\n");
-    printf(" under certain conditions. See 'LICENSE' for details          \n");
+    printf("filedistance  Copyright (C) 2020  Marco Savelli               \n");
+    printf("This program comes with ABSOLUTELY NO WARRANTY.               \n");
+    printf("This is free software, and you are welcome to redistribute it \n");
+    printf("under certain conditions. See 'LICENSE' for details           \n");
     printf("--------------------------------------------------------------\n");
 }
 
@@ -88,9 +88,9 @@ int main(int argc, char** argv)
         /* distance file1 file2 */
         if (argc == 4)
         {
-            time_t begin = time(NULL);
+            clock_t begin = clock();
                 int result = levenshtein_file_distance(argv[2], argv[3]);
-            time_t end = time(NULL);
+            clock_t end = clock();
 
             if (result < 0)
             {
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
             }
 
             printf("EDIT DISTANCE: %d\n", result);
-            printf("TIME: %ld\n", end - begin );
+            printf("TIME: %f\n", ((double)(end - begin)) / CLOCKS_PER_SEC );
             exit(EXIT_SUCCESS);
         }
         /* distance file1 file2 output */
@@ -193,12 +193,13 @@ int main(int argc, char** argv)
 
 bool hint_didumean(const char* command)
 {
-    if (strlen(command) != 0)
+    size_t lencmd = strlen(command);
+    if (lencmd != 0)
     {
         char cmds[][9] = {"distance", "search", "apply", "searchall"};
         for (int i = 0; i < 4; i++)
         {
-            int dist = levenshtein_dist(cmds[i], strlen(cmds[i]), command, strlen(command));
+            int dist = levenshtein_dist(cmds[i], strlen(cmds[i]), command, lencmd);
             if (dist > 0 && dist <= 2)
             {
                 printf("Command not correct, did you mean '%s'?\n", cmds[i]);
