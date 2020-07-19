@@ -36,7 +36,6 @@ typedef struct _edit
     unsigned int score  : 14;
     unsigned int pos    : 16;
     char c;
-    struct _edit* prev;
 } edit;
 
 void print_edit(const edit* e, FILE* outfile);

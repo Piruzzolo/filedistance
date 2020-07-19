@@ -71,7 +71,6 @@ int count_occurrences(FILE* file, const char* word)
 
 int file_copy(FILE* in, FILE* out, unsigned int len)
 {
-
     if (len == 0)
         return 0;
 

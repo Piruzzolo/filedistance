@@ -31,7 +31,7 @@
 #include "../include/apply.h"
 
 
-static char abortMsg[] = "\nCTRL-C received. Stop.\n";
+char* abortMsg = "\nCTRL-C received. Stop.\n";
 
 void parse_int_or_fail(const char* str, long* v);
 
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
             print_usage(); exit(EXIT_FAILURE);
         }
     }
-    /* filedistance help */
+    /* help */
     else if (strcmp(argv[1], "help") == 0)
     {
         if (argc == 2)
@@ -225,7 +225,7 @@ void parse_int_or_fail(const char* str, long* v)
 
     if (endptr == str)
     {
-        fprintf(stderr, "No digits were found.\n"); exit(EXIT_FAILURE);
+        fprintf(stderr, "ERROR: no digits were found.\n"); exit(EXIT_FAILURE);
     }
 
     *v = val;

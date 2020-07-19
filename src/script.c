@@ -17,6 +17,7 @@
 
 #include <stdlib.h> // malloc, free
 #include <string.h>
+#include <stdbool.h>
 
 #include "../include/script.h"
 #include "../include/util.h"
@@ -130,12 +131,10 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
             if (best == del)
             {
                 mat[i][j].operation = DEL;
-                mat[i][j].prev = &mat[i - 1][j];
             }
             else if (best == ins)
             {
                 mat[i][j].operation = ADD;
-                mat[i][j].prev = &mat[i][j - 1];
             }
             else
             {
@@ -147,7 +146,6 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
                 {
                     mat[i][j].operation = NONE;
                 }
-                mat[i][j].prev = &mat[i - 1][j - 1];
             }
         }
     }
@@ -182,14 +180,12 @@ edit** levenshtein_create_matrix(size_t len1, size_t len2)
     for (int i = 0; i <= len1; i++)
     {
         mat[i][0].score = i;
-        mat[i][0].prev = NULL;
         mat[i][0].c = 0;
     }
 
     for (int j = 0; j <= len2; j++)
     {
         mat[0][j].score = j;
-        mat[0][j].prev = NULL;
         mat[0][j].c = 0;
     }
 
@@ -225,21 +221,45 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     }
     else
     {
-        unsigned int i = dist - 1;
-        edit* curr;
-        int cnt = 0;
-        for (curr = &mat[len1][len2]; curr->prev != NULL; curr = curr->prev)
-        {
-            cnt++;
-            if (curr->operation == NONE)
-            {
-                continue;
-            }
 
-            memcpy(*script + i, curr, sizeof(edit));
-            i--;
+        unsigned int k = dist - 1;
+        int i = len1;
+        int j = len2;
+        edit* curr = &mat[i][j];
+
+        while (i != 0 || j != 0)
+        {
+            if (curr->operation == ADD)
+            {
+                memcpy(*script + k, curr, sizeof(edit));
+                k--;
+
+                curr = &mat[i][--j];
+
+            }
+            else if (curr->operation == DEL)
+            {
+                memcpy(*script + k, curr, sizeof(edit));
+                k--;
+
+                curr = &mat[--i][j];
+            }
+            else
+            {
+                if (curr->operation == NONE)
+                {
+                    curr = &mat[--i][--j];
+                    continue;
+                }
+
+                memcpy(*script + k, curr, sizeof(edit));
+                k--;
+
+                curr = &mat[--i][--j];
+            }
         }
     }
+
 
     /* free matrix */
     for (int i = 0; i <= len1; i++)
