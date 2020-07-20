@@ -49,3 +49,8 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
 
     return 0;
 }
+
+u_int32_t bytes_to_uint32(char* buf)
+{
+    return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+}

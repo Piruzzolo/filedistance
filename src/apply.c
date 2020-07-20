@@ -27,9 +27,9 @@
 #include "../include/util.h"
 #include "../include/apply.h"
 
-#define BUFSIZE 256
-#define MAX_SIZE_ITEM 8
-
+#define SIZE_ADD_CMD 8
+#define SIZE_DEL_CMD 7
+#define SIZE_SET_CMD 8
 
 void apply_print_err(int err)
 {
@@ -57,12 +57,6 @@ void apply_print_err(int err)
 }
 
 
-u_int32_t bytes_to_uint32(char* buf)
-{
-    return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
-}
-
-
 bool parse_ADD(FILE* file, edit* result)
 {
     long p = ftell(file);
@@ -71,14 +65,14 @@ bool parse_ADD(FILE* file, edit* result)
         return false;
     }
 
-    char buf[MAX_SIZE_ITEM];
-    if (fread(buf, 1, MAX_SIZE_ITEM, file) == MAX_SIZE_ITEM)
+    char buf[SIZE_ADD_CMD];
+    if (fread(buf, 1, SIZE_ADD_CMD, file) == SIZE_ADD_CMD)
     {
         if (strncmp(buf, "ADD", 3) == 0)
         {
             result->operation = ADD;
             result->pos = ntohl(bytes_to_uint32(&buf[3]));
-            result->c = buf[MAX_SIZE_ITEM - 1];
+            result->c = buf[SIZE_ADD_CMD - 1];
 
             return true;
         }
@@ -93,6 +87,7 @@ bool parse_ADD(FILE* file, edit* result)
     return false;
 }
 
+
 bool parse_DEL(FILE* file, edit* result)
 {
     long p = ftell(file);
@@ -101,8 +96,8 @@ bool parse_DEL(FILE* file, edit* result)
         return false;
     }
 
-    char buf[MAX_SIZE_ITEM - 1];
-    if (fread(buf, 1, MAX_SIZE_ITEM - 1, file) == MAX_SIZE_ITEM - 1)
+    char buf[SIZE_DEL_CMD];
+    if (fread(buf, 1, SIZE_DEL_CMD, file) == SIZE_DEL_CMD)
     {
         if (strncmp(buf, "DEL", 3) == 0)
         {
@@ -122,6 +117,7 @@ bool parse_DEL(FILE* file, edit* result)
     return false;
 }
 
+
 bool parse_SET(FILE* file, edit* result)
 {
     long p = ftell(file);
@@ -130,15 +126,15 @@ bool parse_SET(FILE* file, edit* result)
         return false;
     }
 
-    char buf[MAX_SIZE_ITEM];
+    char buf[SIZE_SET_CMD];
 
-    if (fread(buf, 1, MAX_SIZE_ITEM, file) == MAX_SIZE_ITEM)
+    if (fread(buf, 1, SIZE_SET_CMD, file) == SIZE_SET_CMD)
     {
         if (strncmp(buf, "SET", 3) == 0)
         {
             result->operation = SET;
             result->pos = ntohl(bytes_to_uint32(&buf[3]));
-            result->c = buf[MAX_SIZE_ITEM - 1];
+            result->c = buf[SIZE_SET_CMD - 1];
 
             return true;
         }
@@ -153,22 +149,24 @@ bool parse_SET(FILE* file, edit* result)
     return false;
 }
 
-void apply_ADD(FILE* out, edit* toApply)
+
+void apply_ADD(FILE* out, edit* e)
 {
-    char c = toApply->c;
+    char c = e->c;
     fputc(c, out);
 }
 
-void apply_DEL(FILE* in, edit* toApply)
+
+void apply_DEL(FILE* in, edit* e)
 {
-    fseek(in, toApply->pos + 1, SEEK_SET);
+    fseek(in, e->pos + 1, SEEK_SET);
 }
 
 
-void apply_SET(FILE* out, FILE* in, edit* toApply)
+void apply_SET(FILE* out, FILE* in, edit* e)
 {
-    fseek(in, toApply->pos + 1, SEEK_SET);
-    char b = toApply->c;
+    fseek(in, e->pos + 1, SEEK_SET);
+    char b = e->c;
     fputc(b, out);
 }
 
