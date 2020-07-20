@@ -34,7 +34,7 @@ typedef struct _edit
 {
     edit_type operation : 2;
     unsigned int score  : 14;
-    unsigned int pos    : 16;
+    unsigned int pos    : 14;
     char c;
 } edit;
 

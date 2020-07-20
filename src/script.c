@@ -97,17 +97,16 @@ void print_edit(const edit* e, FILE* outfile)
 
 unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, const char *str2, size_t len2)
 {
-    unsigned int i, j;
-    for (j = 1; j <= len2; j++)
+    for (int j = 1; j <= len2; j++)
     {
-        for (i = 1; i <= len1; i++)
+        for (int i = 1; i <= len1; i++)
         {
             //if (isOutCell(j, i, len2, len1))
             //    continue;
 
-            unsigned int substitution_cost;
-            unsigned int del = 0, ins = 0, subst = 0;
-            unsigned int best;
+            int substitution_cost;
+            int del = 0, ins = 0, subst = 0;
+            int best;
 
             if (str1[i - 1] == str2[j - 1])
             {
@@ -125,8 +124,8 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
             best = minmin(del, ins, subst);
 
             mat[i][j].score = best;
-            mat[i][j].c = str2[j - 1];
             mat[i][j].pos = i - 1;
+            mat[i][j].c = str2[j - 1];
 
             if (best == del)
             {
@@ -153,6 +152,7 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
     return mat[len1][len2].score;
 }
 
+
 edit** levenshtein_create_matrix(size_t len1, size_t len2)
 {
     edit** mat = malloc((len1 + 1) * sizeof(edit*));
@@ -173,6 +173,7 @@ edit** levenshtein_create_matrix(size_t len1, size_t len2)
 
             free(mat);
             mat = NULL;
+
             return NULL;
         }
     }
@@ -191,6 +192,7 @@ edit** levenshtein_create_matrix(size_t len1, size_t len2)
 
     return mat;
 }
+
 
 int levenshtein_distance_script(const char* str1, size_t len1, const char* str2, size_t len2, edit** script)
 {
@@ -221,7 +223,6 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     }
     else
     {
-
         unsigned int k = dist - 1;
         int i = len1;
         int j = len2;
@@ -229,33 +230,38 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
 
         while (i != 0 || j != 0)
         {
-            if (curr->operation == ADD)
+            switch (curr->operation)
             {
-                memcpy(*script + k, curr, sizeof(edit));
-                k--;
-
-                curr = &mat[i][--j];
-
-            }
-            else if (curr->operation == DEL)
-            {
-                memcpy(*script + k, curr, sizeof(edit));
-                k--;
-
-                curr = &mat[--i][j];
-            }
-            else
-            {
-                if (curr->operation == NONE)
+                case ADD:
                 {
-                    curr = &mat[--i][--j];
-                    continue;
+                    memcpy(*script + k, curr, sizeof(edit));
+                    k--;
+
+                    curr = &mat[i][--j];
+                    break;
+                }
+                case DEL:
+                {
+                    memcpy(*script + k, curr, sizeof(edit));
+                    k--;
+
+                    curr = &mat[--i][j];
+                    break;
                 }
 
-                memcpy(*script + k, curr, sizeof(edit));
-                k--;
+                default:
+                {
+                    if (curr->operation == NONE)
+                    {
+                        curr = &mat[--i][--j];
+                        continue;
+                    }
+                    memcpy(*script + k, curr, sizeof(edit));
+                    k--;
 
-                curr = &mat[--i][--j];
+                    curr = &mat[--i][--j];
+                    break;
+                }
             }
         }
     }
@@ -303,11 +309,11 @@ int levenshtein_file_distance_script(const char* file1, const char* file2, const
 
             //if (strlen(buffer1) < strlen(buffer2))
             //{
-            distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
+            //distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
             //}
            // else
            // {
-                //distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
+                distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
            // }
 
             append_script_file(out, script, distance);

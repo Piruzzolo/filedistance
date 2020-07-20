@@ -105,7 +105,7 @@ int main(int argc, char** argv)
         /* distance file1 file2 output */
         else if (argc == 5)
         {
-            int ret = levenshtein_file_distance_script(argv[3], argv[2],argv[4]);
+            int ret = levenshtein_file_distance_script(argv[2], argv[3],argv[4]);
             if (ret == 0)
             {
                 exit(EXIT_SUCCESS);
