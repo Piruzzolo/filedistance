@@ -17,7 +17,6 @@
 
 #include <stdlib.h> // malloc, free
 #include <string.h>
-#include <stdbool.h>
 
 #include "../include/script.h"
 #include "../include/util.h"
@@ -95,11 +94,11 @@ void print_edit(const edit* e, FILE* outfile)
 }
 
 
-unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, const char *str2, size_t len2)
+unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t m, const char *str2, size_t n)
 {
-    for (int j = 1; j <= len2; j++)
+    for (int j = 1; j <= n; j++)
     {
-        for (int i = 1; i <= len1; i++)
+        for (int i = 1; i <= m; i++)
         {
             //if (isOutCell(j, i, len2, len1))
             //    continue;
@@ -149,7 +148,7 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t len1, 
         }
     }
 
-    return mat[len1][len2].score;
+    return mat[m][n].score;
 }
 
 

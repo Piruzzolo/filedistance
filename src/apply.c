@@ -72,16 +72,23 @@ bool parse_ADD(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM];
-    fread(buf, MAX_SIZE_ITEM, 1, file);// todo check fread read bytes
-    if (strncmp(buf, "ADD", 3) == 0)
+    if (fread(buf, 1, MAX_SIZE_ITEM, file) == MAX_SIZE_ITEM)
     {
-        result->operation = ADD;
-        result->pos = ntohl(bytes_to_uint32(&buf[3]));
-        result->c = buf[MAX_SIZE_ITEM - 1];
+        if (strncmp(buf, "ADD", 3) == 0)
+        {
+            result->operation = ADD;
+            result->pos = ntohl(bytes_to_uint32(&buf[3]));
+            result->c = buf[MAX_SIZE_ITEM - 1];
 
-        return true;
+            return true;
+        }
+    }
+    else
+    {
+        return false;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
     return false;
 }
@@ -95,15 +102,22 @@ bool parse_DEL(FILE* file, edit* result)
     }
 
     char buf[MAX_SIZE_ITEM - 1];
-    fread(buf, MAX_SIZE_ITEM - 1, 1, file);// todo check fread read bytes
-    if (strncmp(buf, "DEL", 3) == 0)
+    if (fread(buf, 1, MAX_SIZE_ITEM - 1, file) == MAX_SIZE_ITEM - 1)
     {
-        result->operation = DEL;
-        result->pos = ntohl(bytes_to_uint32(&buf[3]));
+        if (strncmp(buf, "DEL", 3) == 0)
+        {
+            result->operation = DEL;
+            result->pos = ntohl(bytes_to_uint32(&buf[3]));
 
-        return true;
+            return true;
+        }
+    }
+    else
+    {
+        return false;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
     return false;
 }
@@ -118,16 +132,23 @@ bool parse_SET(FILE* file, edit* result)
 
     char buf[MAX_SIZE_ITEM];
 
-    fread(buf, MAX_SIZE_ITEM, 1, file); // todo check fread read bytes
-    if (strncmp(buf, "SET", 3) == 0)
+    if (fread(buf, 1, MAX_SIZE_ITEM, file) == MAX_SIZE_ITEM)
     {
-        result->operation = SET;
-        result->pos = ntohl(bytes_to_uint32(&buf[3]));
-        result->c = buf[MAX_SIZE_ITEM - 1];
+        if (strncmp(buf, "SET", 3) == 0)
+        {
+            result->operation = SET;
+            result->pos = ntohl(bytes_to_uint32(&buf[3]));
+            result->c = buf[MAX_SIZE_ITEM - 1];
 
-        return true;
+            return true;
+        }
+    }
+    else
+    {
+        return false;
     }
 
+    /* rollback seek */
     fseek(file, p, SEEK_SET);
     return false;
 }
@@ -143,18 +164,12 @@ void apply_DEL(FILE* in, edit* toApply)
     fseek(in, toApply->pos + 1, SEEK_SET);
 }
 
+
 void apply_SET(FILE* out, FILE* in, edit* toApply)
 {
     fseek(in, toApply->pos + 1, SEEK_SET);
     char b = toApply->c;
     fputc(b, out);
-}
-
-int get_num_ops(FILE* script)
-{
-    return count_occurrences(script, "ADD") +
-           count_occurrences(script, "DEL") +
-           count_occurrences(script, "SET");
 }
 
 
@@ -193,44 +208,49 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
     stat(infile, &st2);
     int size_infile = st2.st_size;
 
-    int numOps = get_num_ops(scriptfile);
-
     /* ensure seeks are at a known value, begin */
+
     rewind(in);
     rewind(scriptfile);
     rewind(out);
 
-    edit todo = {0};
+    edit cmd = {0};
 
-    for (int i = 0; i < 161; i++) // todo get_num_ops o gestire con un while...
+    while (true)
     {
-        /* try to parse the command, save the result in todo,
-         * copy bytes from last position to todo's position
-         * then apply the operation read */
+        /* try to parse the command, save the result in cmd;
+           copy bytes from last position to cmd's position
+           then apply the operation read */
 
-        if (parse_ADD(scriptfile, &todo))
+        if (parse_ADD(scriptfile, &cmd))
         {
-            file_copy(in, out, todo.pos - ftell(in) + 1);
-            apply_ADD(out, &todo);
+            file_copy(in, out, cmd.pos - ftell(in) + 1);
+            apply_ADD(out, &cmd);
         }
-        else if (parse_DEL(scriptfile, &todo))
+        else if (parse_DEL(scriptfile, &cmd))
         {
-            file_copy(in, out, todo.pos - ftell(in));
-            apply_DEL(in, &todo);
+            file_copy(in, out, cmd.pos - ftell(in));
+            apply_DEL(in, &cmd);
         }
-        else if (parse_SET(scriptfile, &todo))
+        else if (parse_SET(scriptfile, &cmd))
         {
-            file_copy(in, out, todo.pos - ftell(in));
-            apply_SET(out, in, &todo);
+            file_copy(in, out, cmd.pos - ftell(in));
+            apply_SET(out, in, &cmd);
         }
         else
         {
-            errno = ECORRUPTD;
-            return -1;
+            if (!feof(scriptfile))
+            {
+                errno = ECORRUPTD;
+                return -1;
+
+            }
+
+            break;
         }
 
-        /* clean up todo for next cycle */
-        memset(&todo, 0, sizeof(todo));
+        /* clean up cmd for next iteration */
+        memset(&cmd, 0, sizeof(cmd));
     }
 
     /* copy from infile's seek till its EOF */

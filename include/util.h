@@ -48,12 +48,4 @@ int minmin(int x, int y, int z);
 int file_copy(FILE* in, FILE* out, unsigned int len);
 
 
-/// Counts the occurrences of word in file
-///
-/// \param file the file to search into
-/// \param word the string to search
-/// \return the count
-int count_occurrences(FILE* file, const char* word);
-
-
 #endif // FILEDISTANCE_UTIL_H

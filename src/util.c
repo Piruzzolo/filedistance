@@ -28,44 +28,10 @@ int min(int x, int y)
     return (x < y) ? x : y;
 }
 
+
 int minmin(int x, int y, int z)
 {
     return min(min(x, y), z);
-}
-
-int count_occurrences(FILE* file, const char* word)
-{
-    int count = 0;
-    int ch = 0;
-    size_t len = strlen(word);
-
-    while (true)
-    {
-        if ((ch = fgetc(file)) == EOF)
-            break;
-
-        if ((char) ch != *word)
-            continue;
-
-        for (int i = 1; i < len; ++i)
-        {
-            if ((ch = fgetc(file)) == EOF)
-            {
-                rewind(file);
-                return count;
-            }
-
-            if ((char) ch != word[i])
-            {
-                fseek(file, 1 - i, SEEK_CUR);
-                continue;
-            }
-        }
-        count++;
-    }
-
-    rewind(file);
-    return count;
 }
 
 
