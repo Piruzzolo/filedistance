@@ -99,6 +99,9 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     char* buf1 = NULL;
     char* buf2 = NULL;
 
+    // todo controllo null e size files
+
+
     int dist = 0;
 
     struct stat st1;

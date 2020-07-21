@@ -71,7 +71,7 @@ bool parse_ADD(FILE* file, edit* result)
         if (strncmp(buf, "ADD", 3) == 0)
         {
             result->operation = ADD;
-            result->pos = ntohl(bytes_to_uint32(&buf[3]));
+            result->position = ntohl(bytes_to_uint32(&buf[3]));
             result->c = buf[SIZE_ADD_CMD - 1];
 
             return true;
@@ -102,7 +102,7 @@ bool parse_DEL(FILE* file, edit* result)
         if (strncmp(buf, "DEL", 3) == 0)
         {
             result->operation = DEL;
-            result->pos = ntohl(bytes_to_uint32(&buf[3]));
+            result->position = ntohl(bytes_to_uint32(&buf[3]));
 
             return true;
         }
@@ -133,7 +133,7 @@ bool parse_SET(FILE* file, edit* result)
         if (strncmp(buf, "SET", 3) == 0)
         {
             result->operation = SET;
-            result->pos = ntohl(bytes_to_uint32(&buf[3]));
+            result->position = ntohl(bytes_to_uint32(&buf[3]));
             result->c = buf[SIZE_SET_CMD - 1];
 
             return true;
@@ -159,13 +159,13 @@ void apply_ADD(FILE* out, edit* e)
 
 void apply_DEL(FILE* in, edit* e)
 {
-    fseek(in, e->pos + 1, SEEK_SET);
+    fseek(in, e->position + 1, SEEK_SET);
 }
 
 
 void apply_SET(FILE* out, FILE* in, edit* e)
 {
-    fseek(in, e->pos + 1, SEEK_SET);
+    fseek(in, e->position + 1, SEEK_SET);
     char b = e->c;
     fputc(b, out);
 }
@@ -222,17 +222,17 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
 
         if (parse_ADD(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.pos - ftell(in) + 1);
+            file_copy(in, out, cmd.position - ftell(in) + 1);
             apply_ADD(out, &cmd);
         }
         else if (parse_DEL(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.pos - ftell(in));
+            file_copy(in, out, cmd.position - ftell(in));
             apply_DEL(in, &cmd);
         }
         else if (parse_SET(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.pos - ftell(in));
+            file_copy(in, out, cmd.position - ftell(in));
             apply_SET(out, in, &cmd);
         }
         else

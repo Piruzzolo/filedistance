@@ -48,7 +48,10 @@ int minmin(int x, int y, int z);
 int file_copy(FILE* in, FILE* out, unsigned int len);
 
 
-
+/// Converts buf to unsigned int 32 bit
+///
+/// \param buf the char array to convert
+/// \return the converted unsigned value
 u_int32_t bytes_to_uint32(char* buf);
 
 #endif // FILEDISTANCE_UTIL_H

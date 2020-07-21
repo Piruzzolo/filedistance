@@ -62,7 +62,7 @@ void print_edit(const edit* e, FILE* outfile)
         case ADD:
         {
             const char op[] = "ADD";
-            unsigned int n = htonl(e->pos);
+            unsigned int n = htonl(e->position);
             char b = e->c;
             fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
@@ -72,7 +72,7 @@ void print_edit(const edit* e, FILE* outfile)
         case DEL:
         {
             const char op[] = "DEL";
-            unsigned int n = htonl(e->pos);
+            unsigned int n = htonl(e->position);
             fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
             break;
@@ -80,7 +80,7 @@ void print_edit(const edit* e, FILE* outfile)
         case SET:
         {
             const char op[] = "SET";
-            unsigned int n = htonl(e->pos);
+            unsigned int n = htonl(e->position);
             char b = e->c;
             fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
@@ -123,7 +123,7 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t m, con
             best = minmin(del, ins, subst);
 
             mat[i][j].score = best;
-            mat[i][j].pos = i - 1;
+            mat[i][j].position = i - 1;
             mat[i][j].c = str2[j - 1];
 
             if (best == del)
@@ -216,13 +216,9 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
     dist = levenshtein_fill_matrix(mat, str1, len1, str2, len2);
 
     *script = malloc(dist * sizeof(edit));
-    if (!(*script))
+    if (*script)
     {
-        dist = 0;
-    }
-    else
-    {
-        unsigned int k = dist - 1;
+        unsigned int p = dist - 1;
         int i = len1;
         int j = len2;
         edit* curr = &mat[i][j];
@@ -233,16 +229,16 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
             {
                 case ADD:
                 {
-                    memcpy(*script + k, curr, sizeof(edit));
-                    k--;
+                    memcpy(*script + p, curr, sizeof(edit));
+                    p--;
 
                     curr = &mat[i][--j];
                     break;
                 }
                 case DEL:
                 {
-                    memcpy(*script + k, curr, sizeof(edit));
-                    k--;
+                    memcpy(*script + p, curr, sizeof(edit));
+                    p--;
 
                     curr = &mat[--i][j];
                     break;
@@ -255,14 +251,18 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
                         curr = &mat[--i][--j];
                         continue;
                     }
-                    memcpy(*script + k, curr, sizeof(edit));
-                    k--;
+                    memcpy(*script + p, curr, sizeof(edit));
+                    p--;
 
                     curr = &mat[--i][--j];
                     break;
                 }
             }
         }
+    }
+    else
+    {
+        dist = 0;
     }
 
 
