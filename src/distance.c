@@ -17,23 +17,23 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+#include <sys/stat.h> // stat
 #ifdef MMAP
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
+#include <sys/mman.h> // MMAP
 #endif
 
 #include "../include/util.h" // min, minmin
 
-#define BUFSIZE 256
-
 
 int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
 {
-    if (len1 == 0) return len2;
+    if (len1 == 0)
+        return len2;
 
-    if (len2 == 0) return len1;
+    if (len2 == 0)
+        return len1;
 
     if (len1 < len2)
     {
@@ -115,7 +115,6 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     int size2 = st2.st_size;
 
 #ifdef MMAP
-
     /* open files read only */
     int f1 = open(file1, O_RDONLY);
     int f2 = open(file2, O_RDONLY);
@@ -146,7 +145,6 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     close(f2);
 
     return dist;
-
 #else
 
     if (file_load(file1, &buf1) && file_load(file2, &buf2))

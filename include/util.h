@@ -59,6 +59,6 @@ int file_load(const char* filename, char** buffer);
 ///
 /// \param buf the char array to convert
 /// \return the converted unsigned value
-u_int32_t bytes_to_uint32(char* buf);
+u_int32_t bytes_to_uint32(const char* buf);
 
 #endif // FILEDISTANCE_UTIL_H

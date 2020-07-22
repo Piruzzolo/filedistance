@@ -79,7 +79,7 @@ int add_file(const char *fname, const struct stat *st, int type)
     /* file > lim has always distance > lim */
     if (st->st_size > lim)
     {
-        /* dont't process */
+        /* don't process */
         return 0;
     }
 

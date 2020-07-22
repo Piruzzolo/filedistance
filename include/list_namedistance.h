@@ -33,6 +33,7 @@ enum {
 /// \return an error code
 int list_namedistance_save_to_array(node* list, name_distance** arr);
 
+
 /// Find min of distances
 ///
 /// \param list the list to go through
@@ -40,6 +41,9 @@ int list_namedistance_save_to_array(node* list, name_distance** arr);
 int list_namedistance_min(node* list);
 
 
+/// Print filename of node
+///
+/// \param list the node to print
 void list_namedistance_print_name(node* list);
 
 #endif //FILEDISTANCE_LIST_NAMEDISTANCE_H

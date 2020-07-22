@@ -63,10 +63,9 @@ int file_load(const char* filename, char** buffer)
     }
 
     /* get file size */
-    int size = 0;
     struct stat st;
     stat(filename, &st);
-    size = st.st_size;
+    int size = st.st_size;
 
     /* reset seek */
     fseek(f, 0, SEEK_SET);
@@ -75,7 +74,7 @@ int file_load(const char* filename, char** buffer)
     *buffer = (char*) calloc(size + 1, sizeof(char));
 
     /* copy file contents into buffer */
-    if (!buffer || size != fread(*buffer, sizeof(char), size, f))
+    if (!*buffer || fread(*buffer, sizeof(char), size, f) != size)
     {
         free(*buffer);
         return -2;
@@ -91,7 +90,7 @@ int file_load(const char* filename, char** buffer)
 }
 
 
-u_int32_t bytes_to_uint32(char* buf)
+u_int32_t bytes_to_uint32(const char* buf) // todo probabile problema di sicurezza
 {
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }

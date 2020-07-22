@@ -208,31 +208,40 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
 
     /* ensure seeks are at a known value, begin */
 
-    rewind(in);
-    rewind(scriptfile);
-    rewind(out);
+    //rewind(in);
+    //rewind(scriptfile);
+    //rewind(out);
+
+    fseek(in, 0L, SEEK_SET);
+    fseek(scriptfile, 0L, SEEK_SET);
+    fseek(out, 0L, SEEK_SET);
 
     edit cmd = {0};
+    edit last = {0};
+
+    int cnt = 0;
 
     while (true)
     {
         /* try to parse the command, save the result in cmd;
            copy bytes from last position to cmd's position
            then apply the operation read */
-
         if (parse_ADD(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.position - ftell(in) + 1);
+            file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
             apply_ADD(out, &cmd);
         }
         else if (parse_DEL(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.position - ftell(in));
+            if (last.position == cmd.position && last.operation == cmd.operation)
+                cnt++;
+
+            file_copy(in, out, abs(cmd.position + cnt - ftell(in)));
             apply_DEL(in, &cmd);
         }
         else if (parse_SET(scriptfile, &cmd))
         {
-            file_copy(in, out, cmd.position - ftell(in));
+            file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
             apply_SET(out, in, &cmd);
         }
         else
@@ -241,16 +250,14 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
             {
                 errno = ECORRUPTD;
                 return -1;
-
             }
-
             break;
         }
+        last = cmd;
 
         /* clean up cmd for next iteration */
         memset(&cmd, 0, sizeof(cmd));
     }
-
     /* copy from infile's seek till its EOF */
     file_copy(in, out, size_infile - ftell(in));
 

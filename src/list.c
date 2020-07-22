@@ -90,6 +90,7 @@ void list_traverse(node* list, callback_t f)
 
 void list_free(node* list)
 {
+    // todo list != NULL
     node* cursor;
     node* tmp;
 
@@ -109,6 +110,7 @@ void list_free(node* list)
 
 int list_count(node* list)
 {
+    // todo list != NULL
     node* cursor = list;
     int c = 0;
     while (cursor != NULL)
