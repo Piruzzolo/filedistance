@@ -17,18 +17,17 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#ifdef MMAP
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
+#endif
 
 #include "../include/util.h" // min, minmin
 
 #define BUFSIZE 256
 
-#define MB 1024*1024 // bytes
-
-#define MAX_MAP 10*MB
 
 int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
 {
@@ -75,10 +74,12 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
             }
         }
 
+        /* swap arrays */
         tmp = prev;
         prev = curr;
         curr = tmp;
 
+        /* reset curr */
         memset((void*) curr, 0, sizeof(int) * (len2 + 1));
     }
 
@@ -93,14 +94,15 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
     return distance;
 }
 
-
 int levenshtein_file_distance(const char* file1, const char* file2)
 {
     char* buf1 = NULL;
     char* buf2 = NULL;
 
-    // todo controllo null e size files
-
+    if (file1 == NULL || file2 == NULL)
+    {
+        return -1;
+    }
 
     int dist = 0;
 
@@ -111,6 +113,8 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     struct stat st2;
     stat(file2, &st2);
     int size2 = st2.st_size;
+
+#ifdef MMAP
 
     /* open files read only */
     int f1 = open(file1, O_RDONLY);
@@ -143,4 +147,18 @@ int levenshtein_file_distance(const char* file1, const char* file2)
 
     return dist;
 
+#else
+
+    if (file_load(file1, &buf1) && file_load(file2, &buf2))
+    {
+        dist = levenshtein_dist(buf1, size1, buf2, size2);
+
+        return dist;
+    }
+    else
+    {
+        return -1;
+    }
+
+#endif
 }

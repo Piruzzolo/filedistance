@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "../include/util.h"
 
@@ -49,6 +50,46 @@ int file_copy(FILE* in, FILE* out, unsigned int len)
 
     return 0;
 }
+
+
+int file_load(const char* filename, char** buffer)
+{
+    /* open read */
+    FILE *f = fopen(filename, "r");
+    if (f == NULL)
+    {
+        *buffer = NULL;
+        return -1;
+    }
+
+    /* get file size */
+    int size = 0;
+    struct stat st;
+    stat(filename, &st);
+    size = st.st_size;
+
+    /* reset seek */
+    fseek(f, 0, SEEK_SET);
+
+    /* allocate buffer */
+    *buffer = (char*) calloc(size + 1, sizeof(char));
+
+    /* copy file contents into buffer */
+    if (!buffer || size != fread(*buffer, sizeof(char), size, f))
+    {
+        free(*buffer);
+        return -2;
+    }
+
+    /* close file */
+    fclose(f);
+
+    /* null-terminate buffer */
+    (*buffer)[size] = 0;
+
+    return size;
+}
+
 
 u_int32_t bytes_to_uint32(char* buf)
 {

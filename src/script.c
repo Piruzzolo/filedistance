@@ -22,38 +22,7 @@
 #include "../include/util.h"
 #include "../include/endianness.h"
 
-#define KB 1024
-#define BUFSIZE 10*KB
-
-
-int manhattanDistance(int x1, int y1, int x2, int y2)
-{
-    return abs(x1 - x2) + abs(y1 - y2);
-}
-
-// per la derivazione vedere la documentazione
-_Bool isOutCell(i, j, n, m)
-{
-    return 2 * min(manhattanDistance(i, j, 0, n),manhattanDistance(i, j, m, 0)) <= n;
-}
-
-// conta il numero di celle valide per una matrice m x n
-int count_valid_cells(int m, int n)
-{
-    int count = 0;
-    for (int i = 0; i <= m; i++)
-    {
-        for (int j = 0; j <= n; j++)
-        {
-            if (isOutCell(i, j, n, m))
-            {
-                count++;
-            }
-        }
-    }
-    return count;
-}
-
+#define BUFSIZE 256
 
 void print_edit(const edit* e, FILE* outfile)
 {
@@ -100,9 +69,6 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t m, con
     {
         for (int i = 1; i <= m; i++)
         {
-            //if (isOutCell(j, i, len2, len1))
-            //    continue;
-
             int substitution_cost;
             int del = 0, ins = 0, subst = 0;
             int best;
@@ -223,7 +189,7 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
         int j = len2;
         edit* curr = &mat[i][j];
 
-        while (i != 0 || j != 0)
+        while (i >= 0 || j >= 0)
         {
             switch (curr->operation)
             {

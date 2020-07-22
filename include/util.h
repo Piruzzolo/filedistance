@@ -48,6 +48,13 @@ int minmin(int x, int y, int z);
 int file_copy(FILE* in, FILE* out, unsigned int len);
 
 
+/// Loads contents of file into buffer
+/// \param filename the file to be loaded
+/// \param buffer the buffer to copy into
+/// \return 0 if succeeded, -1 otherwise
+int file_load(const char* filename, char** buffer);
+
+
 /// Converts buf to unsigned int 32 bit
 ///
 /// \param buf the char array to convert
