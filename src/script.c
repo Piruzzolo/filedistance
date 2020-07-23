@@ -41,8 +41,10 @@ void script_print_edit(const edit* e, FILE* outfile)
         {
             const char op[] = "DEL";
             unsigned int n = htonl(e->position);
+            char b = ' ';
             fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
             fwrite(&n, sizeof(unsigned int), 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
         case SET:

@@ -18,30 +18,37 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
-#include <unistd.h>
-#include <time.h>
-#include <errno.h>
-#include <limits.h>
-#include <stdbool.h>
+#include <signal.h>  // signal, SIGINT
+#include <unistd.h>  // write, STDOUT_FILENO
+#include <time.h>    // clock
+#include <errno.h>   // errno
+#include <limits.h>  // LONG_MAX, LONG_MIN
+#include <stdbool.h> // bool
 
 #include "../include/distance.h"
 #include "../include/script.h"
-#include "../include/search.h"
 #include "../include/apply.h"
+#include "../include/search.h"
 
 
-char* abortMsg = "\nCTRL-C received. Stop.\n";
+char* ABORT    = "\nSIGINT received. Stop.               \n";
+char* NUMARGS  = "ERROR: Wrong number of arguments.      \n";
+char* CANTSAVE = "ERROR: Can't save the output file.     \n";
+char* CANTOPEN = "ERROR: can't open the file(s).         \n";
+char* ONEARG   = "ERROR: expected at least one argument  \n";
+char* DIDUMEAN = "Command not correct, did you mean '%s'?\n";
+char* NODIGIT  = "ERROR: no digits were found.           \n";
+char* NOTVALID = "ERROR: Command %s not valid.         \n\n";
+
 
 void parse_int_or_fail(const char* str, long* v);
-
 bool hint_didumean(const char* command);
 
 
 void abort_handler()
 {
     /* it's not advisable to call printf inside an interrupt handler */
-    write(STDOUT_FILENO, abortMsg, strlen(abortMsg));
+    write(STDOUT_FILENO, ABORT, strlen(ABORT));
     exit(EXIT_FAILURE);
 }
 
@@ -78,9 +85,8 @@ int main(int argc, char** argv)
 
     if (argc < 2)
     {
-        printf("ERROR: expected at least one argument\n");
+        printf("%s", ONEARG);
         print_usage();
-        exit(EXIT_FAILURE);
     }
 
     if (strcmp(argv[1], "distance") == 0)
@@ -94,67 +100,62 @@ int main(int argc, char** argv)
 
             if (result < 0)
             {
-                printf("ERROR: can't open the file(s).\n");
+                printf("%s", CANTOPEN);
                 exit(EXIT_FAILURE);
             }
 
             printf("EDIT DISTANCE: %d\n", result);
-            printf("TIME: %f\n", ((double)(end - begin)) / CLOCKS_PER_SEC );
-            exit(EXIT_SUCCESS);
+            printf("TIME: %f\n", ((double)(end - begin)) / CLOCKS_PER_SEC);
         }
+
         /* distance file1 file2 output */
         else if (argc == 5)
         {
             int ret = script_file_distance(argv[2], argv[3],argv[4]);
-            if (ret == 0)
+            if (ret != 0)
             {
-                exit(EXIT_SUCCESS);
-            }
-            else
-            {
-                printf("ERROR: Can't save the output file.\n"); exit(EXIT_FAILURE);
+                printf("%s", CANTSAVE);
             }
         }
         else
         {
-            printf("ERROR: wrong number of arguments for 'distance' command.\n");
-            print_usage(); exit(EXIT_FAILURE);
+            printf("%s", NUMARGS);
+            print_usage();
         }
     }
+
     else if (strcmp(argv[1], "apply") == 0)
     {
         /* apply inputfile filem outputfile */
         if (argc == 5)
         {
-            if (apply_edit_script(argv[2], argv[3], argv[4]) == 0)
+            if (apply_edit_script(argv[2], argv[3], argv[4]) != 0)
             {
-                exit(EXIT_SUCCESS);
-            }
-            else
-            {
-                apply_print_err(errno); exit(EXIT_FAILURE);
+                apply_print_err(errno);
+                exit(EXIT_FAILURE);
             }
         }
         else
         {
-            printf("ERROR: Wrong number of arguments for 'apply' command.\n");
+            printf("%s", NUMARGS);
             print_usage(); exit(EXIT_FAILURE);
         }
     }
+
     else if (strcmp(argv[1], "search") == 0)
     {
         /* search inputfile dir */
         if (argc == 4)
         {
             search_min(argv[2], argv[3]);
-            exit(EXIT_SUCCESS);
         }
         else
         {
-            printf("ERROR: Wrong number of arguments for 'search' command.\n");
+            printf("%s", NUMARGS);
             print_usage(); exit(EXIT_FAILURE);
         }
     }
+
     else if (strcmp(argv[1], "searchall") == 0)
     {
         /* searchall inputfile dir limit */
@@ -163,11 +164,10 @@ int main(int argc, char** argv)
             long limit = 0;
             parse_int_or_fail(argv[4], &limit);
             search_all(argv[2], argv[3], limit);
-            exit(EXIT_SUCCESS);
         }
         else
         {
-            printf("ERROR: Wrong number of arguments for 'searchall' command.\n");
+            printf("%s", NUMARGS);
             print_usage(); exit(EXIT_FAILURE);
         }
     }
@@ -177,18 +177,21 @@ int main(int argc, char** argv)
     {
         if (argc == 2)
         {
-            print_usage(); exit(EXIT_SUCCESS);
+            print_usage();
         }
     }
     else
     {
         if (!hint_didumean(argv[1]))
         {
-            printf("ERROR: Command %s not valid.\n\n", argv[1]);
+            printf(NOTVALID, argv[1]);
         }
 
         print_usage();
     }
+
+
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -203,7 +206,7 @@ bool hint_didumean(const char* command)
             int dist = distance_string(cmds[i], strlen(cmds[i]), command, lencmd);
             if (dist > 0 && dist <= 2)
             {
-                printf("Command not correct, did you mean '%s'?\n", cmds[i]);
+                printf(DIDUMEAN, cmds[i]);
                 return true;
             }
         }
@@ -221,12 +224,12 @@ void parse_int_or_fail(const char* str, long* v)
 
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
     {
-        perror("strtol"); exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     if (endptr == str)
     {
-        fprintf(stderr, "ERROR: no digits were found.\n"); exit(EXIT_FAILURE);
+        fprintf(stderr, "%s", NODIGIT); exit(EXIT_FAILURE);
     }
 
     *v = val;

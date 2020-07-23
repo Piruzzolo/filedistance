@@ -27,9 +27,7 @@
 #include "../include/util.h"
 #include "../include/apply.h"
 
-#define SIZE_ADD_CMD 8
-#define SIZE_DEL_CMD 7
-#define SIZE_SET_CMD 8
+#define CMDSIZE 8
 
 void apply_print_err(int err)
 {
@@ -65,14 +63,14 @@ bool parse_ADD(FILE* file, edit* result)
         return false;
     }
 
-    char buf[SIZE_ADD_CMD];
-    if (fread(buf, 1, SIZE_ADD_CMD, file) == SIZE_ADD_CMD)
+    char buf[CMDSIZE];
+    if (fread(buf, 1, CMDSIZE, file) == CMDSIZE)
     {
         if (strncmp(buf, "ADD", 3) == 0)
         {
             result->operation = ADD;
             result->position = ntohl(bytes_to_uint32(&buf[3]));
-            result->c = buf[SIZE_ADD_CMD - 1];
+            result->c = buf[CMDSIZE - 1];
 
             return true;
         }
@@ -96,8 +94,8 @@ bool parse_DEL(FILE* file, edit* result)
         return false;
     }
 
-    char buf[SIZE_DEL_CMD];
-    if (fread(buf, 1, SIZE_DEL_CMD, file) == SIZE_DEL_CMD)
+    char buf[CMDSIZE];
+    if (fread(buf, 1, CMDSIZE, file) == CMDSIZE)
     {
         if (strncmp(buf, "DEL", 3) == 0)
         {
@@ -126,15 +124,15 @@ bool parse_SET(FILE* file, edit* result)
         return false;
     }
 
-    char buf[SIZE_SET_CMD];
+    char buf[CMDSIZE];
 
-    if (fread(buf, 1, SIZE_SET_CMD, file) == SIZE_SET_CMD)
+    if (fread(buf, 1, CMDSIZE, file) == CMDSIZE)
     {
         if (strncmp(buf, "SET", 3) == 0)
         {
             result->operation = SET;
             result->position = ntohl(bytes_to_uint32(&buf[3]));
-            result->c = buf[SIZE_SET_CMD - 1];
+            result->c = buf[CMDSIZE - 1];
 
             return true;
         }
@@ -216,50 +214,81 @@ int apply_edit_script(const char* infile, const char* filem, const char* outfile
     fseek(scriptfile, 0L, SEEK_SET);
     fseek(out, 0L, SEEK_SET);
 
-    edit cmd = {0};
-    edit last = {0};
+    //edit cmd = {0};
+    //edit last = {0};
+//
+    //int cnt = 0;
+//
+    //while (true)
+    //{
+    //    /* try to parse the command, save the result in cmd;
+    //       copy bytes from last position to cmd's position
+    //       then apply the operation read */
+    //    if (parse_ADD(scriptfile, &cmd))
+    //    {
+    //        file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
+    //        apply_ADD(out, &cmd);
+    //    }
+    //    else if (parse_DEL(scriptfile, &cmd))
+    //    {
+    //        if (last.position == cmd.position && last.operation == cmd.operation)
+    //            cnt++;
+//
+    //        file_copy(in, out, abs(cmd.position + cnt - ftell(in)));
+    //        apply_DEL(in, &cmd);
+    //    }
+    //    else if (parse_SET(scriptfile, &cmd))
+    //    {
+    //        file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
+    //        apply_SET(out, in, &cmd);
+    //    }
+    //    else
+    //    {
+    //        if (!feof(scriptfile))
+    //        {
+    //            errno = ECORRUPTD;
+    //            return -1;
+    //        }
+    //        break;
+    //    }
+    //    last = cmd;
+//
+    //    /* clean up cmd for next iteration */
+    //    memset(&cmd, 0, sizeof(cmd));
+    //}
+    ///* copy from infile's seek till its EOF */
+    //file_copy(in, out, size_infile - ftell(in));
 
-    int cnt = 0;
+    char buf[CMDSIZE];
 
-    while (true)
+    while (fread(&buf, CMDSIZE, 1, scriptfile) > 0)
     {
-        /* try to parse the command, save the result in cmd;
-           copy bytes from last position to cmd's position
-           then apply the operation read */
-        if (parse_ADD(scriptfile, &cmd))
-        {
-            file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
-            apply_ADD(out, &cmd);
-        }
-        else if (parse_DEL(scriptfile, &cmd))
-        {
-            if (last.position == cmd.position && last.operation == cmd.operation)
-                cnt++;
+        u_int32_t position = ntohl(bytes_to_uint32(&buf[3]));
+        char c = buf[CMDSIZE - 1];
 
-            file_copy(in, out, abs(cmd.position + cnt - ftell(in)));
-            apply_DEL(in, &cmd);
-        }
-        else if (parse_SET(scriptfile, &cmd))
+        if (strncmp(buf, "ADD", 3) == 0)
         {
-            file_copy(in, out, abs(cmd.position - cnt - ftell(in)));
-            apply_SET(out, in, &cmd);
+            file_copy(in, out, position);
+            fseek(in, position, SEEK_SET);
+            fputc(c, out);
+        }
+        else if (strncmp(buf, "DEL", 3) == 0)
+        {
+            file_copy(in, out, position);
+            fseek(in, position + 1, SEEK_SET);
+        }
+        else if (strncmp(buf, "SET", 3) == 0)
+        {
+            file_copy(in, out, position);
+            fseek(in, position + 1, SEEK_SET);
+            fputc(c, out);
         }
         else
         {
-            if (!feof(scriptfile))
-            {
-                errno = ECORRUPTD;
-                return -1;
-            }
-            break;
+            errno = ECORRUPTD;
+            return -1;
         }
-        last = cmd;
-
-        /* clean up cmd for next iteration */
-        memset(&cmd, 0, sizeof(cmd));
     }
-    /* copy from infile's seek till its EOF */
-    file_copy(in, out, size_infile - ftell(in));
 
     /* close files */
     fclose(in);

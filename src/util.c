@@ -34,18 +34,17 @@ int minmin(int x, int y, int z)
 }
 
 
-int file_copy(FILE* in, FILE* out, unsigned int len)
+int file_copy(FILE* infile, FILE* outfile, int pos_to)
 {
-    if (len == 0)
-        return 0;
-
     char c;
-    for (int i = 0; i < len; i++)
+
+    while (ftell(infile) < pos_to)
     {
-        c = (char) getc(in);
-        if (c == EOF)
-            return -1;
-        putc(c, out);
+        /* read & copy char by char */
+        if (fread(&c, 1, 1, infile) != 0)
+        {
+            fputc(c, outfile);
+        }
     }
 
     return 0;
