@@ -22,6 +22,7 @@
 #include "../include/list.h"
 #include "../include/list_namedistance.h"
 
+
 int list_namedistance_save_to_array(node* list, name_distance** arr)
 {
     int cnt = list_count(list);
@@ -66,7 +67,6 @@ int list_namedistance_save_to_array(node* list, name_distance** arr)
         {
             return -1;
         }
-
     }
     else
     {
@@ -74,6 +74,7 @@ int list_namedistance_save_to_array(node* list, name_distance** arr)
         return -1;
     }
 }
+
 
 int list_namedistance_min(node* list)
 {
@@ -92,8 +93,9 @@ int list_namedistance_min(node* list)
     return min;
 }
 
-void list_namedistance_print_name(node* list)
+
+void list_namedistance_print_name(node* node)
 {
-    name_distance* nd = (name_distance*) list->data;
+    name_distance* nd = (name_distance*) node->data;
     printf("%s\n", nd->filename);
 }

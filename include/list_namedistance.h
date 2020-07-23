@@ -23,7 +23,7 @@
 
 enum {
     EEMPTYLIST
-} list_err_t;
+};
 
 
 /// Save the list to the array arr
@@ -44,6 +44,6 @@ int list_namedistance_min(node* list);
 /// Print filename of node
 ///
 /// \param list the node to print
-void list_namedistance_print_name(node* list);
+void list_namedistance_print_name(node* node);
 
 #endif //FILEDISTANCE_LIST_NAMEDISTANCE_H

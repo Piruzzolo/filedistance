@@ -34,14 +34,14 @@ typedef struct _edit
 {
     edit_type operation   : 2;
     unsigned int score    : 14;
-    unsigned int position : 14;
+    unsigned int position : 16;
     char c;
 } edit;
 
-void print_edit(const edit* e, FILE* outfile);
+void script_print_edit(const edit* e, FILE* outfile);
 
-int levenshtein_distance_script(const char* str1, size_t len1, const char* str2, size_t len2, edit** script);
+int script_string_distance(const char* str1, size_t len1, const char* str2, size_t len2, edit** script);
 
-int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile);
+int script_file_distance(const char* file1, const char* file2, const char* outfile);
 
 #endif // FILEDISTANCE_SCRIPT_H

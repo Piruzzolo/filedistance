@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 {
     hello();
 
-    /* handle CTRL-C */
+    /* handle SIGINT */
     signal(SIGINT, abort_handler);
 
     if (argc < 2)
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
         if (argc == 4)
         {
             clock_t begin = clock();
-                int result = levenshtein_file_distance(argv[2], argv[3]);
+                int result = distance_file(argv[2], argv[3]);
             clock_t end = clock();
 
             if (result < 0)
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
         /* distance file1 file2 output */
         else if (argc == 5)
         {
-            int ret = levenshtein_file_distance_script(argv[2], argv[3],argv[4]);
+            int ret = script_file_distance(argv[2], argv[3],argv[4]);
             if (ret == 0)
             {
                 exit(EXIT_SUCCESS);
@@ -171,6 +171,7 @@ int main(int argc, char** argv)
             print_usage(); exit(EXIT_FAILURE);
         }
     }
+
     /* help */
     else if (strcmp(argv[1], "help") == 0)
     {
@@ -199,7 +200,7 @@ bool hint_didumean(const char* command)
         char cmds[][9] = {"distance", "search", "apply", "searchall"};
         for (int i = 0; i < 4; i++)
         {
-            int dist = levenshtein_dist(cmds[i], strlen(cmds[i]), command, lencmd);
+            int dist = distance_string(cmds[i], strlen(cmds[i]), command, lencmd);
             if (dist > 0 && dist <= 2)
             {
                 printf("Command not correct, did you mean '%s'?\n", cmds[i]);

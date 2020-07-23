@@ -22,9 +22,8 @@
 #include "../include/util.h"
 #include "../include/endianness.h"
 
-#define BUFSIZE 256
 
-void print_edit(const edit* e, FILE* outfile)
+void script_print_edit(const edit* e, FILE* outfile)
 {
     switch (e->operation)
     {
@@ -159,7 +158,7 @@ edit** levenshtein_create_matrix(size_t len1, size_t len2)
 }
 
 
-int levenshtein_distance_script(const char* str1, size_t len1, const char* str2, size_t len2, edit** script)
+int script_string_distance(const char* str1, size_t len1, const char* str2, size_t len2, edit** script)
 {
     unsigned int dist;
 
@@ -245,61 +244,57 @@ int levenshtein_distance_script(const char* str1, size_t len1, const char* str2,
 }
 
 
-void append_script_file(FILE* file, edit* script, size_t len)
+int append_script_file(const char* file, edit* script, size_t len)
 {
-    for (int i = 0; i < len; i++)
+    FILE* f = fopen(file, "w");
+    if (f)
     {
-        print_edit(&script[i], file);
+        for (int i = 0; i < len; i++)
+        {
+            script_print_edit(&script[i], f);
+        }
+        return 0;
+    }
+    else
+    {
+        return -1;
     }
 }
 
-int levenshtein_file_distance_script(const char* file1, const char* file2, const char* outfile)
+
+int script_file_distance(const char* file1, const char* file2, const char* outfile)
 {
-    char buffer1[BUFSIZE];
-    char buffer2[BUFSIZE];
+    if (file1 == NULL || file2 == NULL)
+    {
+        return -1;
+    }
+
+    char* buf1 = NULL;
+    char* buf2 = NULL;
+
+    int distance = 0;
 
     edit* script = NULL;
 
-    int tot = 0;
-
-    FILE* f1 = fopen(file1, "r" );
-    FILE* f2 = fopen(file2, "r" );
-    FILE* out = fopen(outfile, "w");
-
-    if (f1 != NULL && f2 != NULL)
+    if (file_load(file1, &buf1) && file_load(file2, &buf2))
     {
-        while (fgets(buffer1, BUFSIZE, f1) && fgets(buffer2, BUFSIZE, f2))
-        {
-            int distance = 0;
-
-            //if (strlen(buffer1) < strlen(buffer2))
-            //{
-            //distance = levenshtein_distance_script(buffer2, strlen(buffer2), buffer1, strlen(buffer1), &script);
-            //}
-           // else
-           // {
-                distance = levenshtein_distance_script(buffer1, strlen(buffer1), buffer2, strlen(buffer2), &script);
-           // }
-
-            append_script_file(out, script, distance);
-            tot += distance;
-        }
+        distance = script_string_distance(buf1, strlen(buf1), buf2, strlen(buf2), &script);
     }
     else
     {
         return -1;
     }
 
-    printf("Distance: %d\n", tot);
+    if (append_script_file(outfile, script, distance) < 0)
+    {
+        return -1;
+    }
 
+    printf("Distance: %d\n", distance);
     printf("Edit script saved successfully: %s\n", outfile);
 
     free(script);
     script = NULL;
-
-    if (f1) fclose(f1);
-    if (f2) fclose(f2);
-    if (out) fclose(out);
 
     return 0;
 

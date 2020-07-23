@@ -27,7 +27,7 @@
 #include "../include/util.h" // min, minmin
 
 
-int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
+int distance_string(const char* str1, size_t len1, const char* str2, size_t len2)
 {
     if (len1 == 0)
         return len2;
@@ -37,7 +37,7 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
 
     if (len1 < len2)
     {
-        return levenshtein_dist(str2, len2, str1, len1);
+        return distance_string(str2, len2, str1, len1);
     }
 
     int distance = 0;
@@ -94,7 +94,7 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
     return distance;
 }
 
-int levenshtein_file_distance(const char* file1, const char* file2)
+int distance_file(const char* file1, const char* file2)
 {
     char* buf1 = NULL;
     char* buf2 = NULL;
@@ -149,7 +149,7 @@ int levenshtein_file_distance(const char* file1, const char* file2)
 
     if (file_load(file1, &buf1) && file_load(file2, &buf2))
     {
-        dist = levenshtein_dist(buf1, size1, buf2, size2);
+        dist = distance_string(buf1, size1, buf2, size2);
 
         return dist;
     }

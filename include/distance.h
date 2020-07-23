@@ -25,9 +25,9 @@
 /// \param str1 the first string
 /// \param str2 the second string
 /// \return
-int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2);
+int distance_string(const char* str1, size_t len1, const char* str2, size_t len2);
 
-int levenshtein_file_distance(const char* file1, const char* file2);
+int distance_file(const char* file1, const char* file2);
 
 
 #endif // DISTANCE_H

@@ -15,14 +15,12 @@
 *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <ftw.h>     // ftw
 #include <limits.h>  // INT_MAX
 #include <stdbool.h>
 #include <string.h>  // strcmp
-#include <sys/stat.h>
 
 #include "../include/search.h"
 #include "../include/list.h"
@@ -32,7 +30,7 @@
 
 #define MAX_OPEN_FD 8 // max dirs open at the same time
 
-char* inputFile;
+char* inputFile = NULL;
 node* list = NULL;
 long lim = INT_MAX;
 
@@ -69,7 +67,6 @@ bool compare_fun(void* pVoid, op_t op, int value)
 }
 
 
-
 int add_file(const char *fname, const struct stat *st, int type)
 {
     /* must be a regular file */
@@ -84,7 +81,7 @@ int add_file(const char *fname, const struct stat *st, int type)
     }
 
     /* get distance to inputFile */
-    int distance = levenshtein_file_distance(fname, inputFile);
+    int distance = distance_file(fname, inputFile);
     if (distance < 0)
     {
         return -1;
@@ -193,7 +190,6 @@ int search_all(const char* f, const char* dir, long limit)
 {
     if (!f || !dir)
     {
-        //perror ...
         return -1;
     }
 
@@ -207,7 +203,7 @@ int search_all(const char* f, const char* dir, long limit)
     int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {
-        // error
+        return -1;
     }
 
     /* filter list in place, keep elems w/ distance <= limit */
@@ -221,7 +217,12 @@ int search_all(const char* f, const char* dir, long limit)
 
     /* save list to array */
     name_distance* arr = NULL;
-    list_namedistance_save_to_array(filtered, &arr);
+    if (list_namedistance_save_to_array(filtered, &arr) == -1)
+    {
+        /* free list */
+        list_free(filtered);
+        return -1;
+    }
 
     /* free list */
     list_free(filtered);
