@@ -59,46 +59,53 @@ void script_print_edit(const edit* e, FILE* outfile)
 }
 
 
-unsigned int levenshtein_fill_matrix(edit** matrix, const char* str1, size_t m, const char *str2, size_t n)
+unsigned int levenshtein_fill_matrix(edit** matrix, const char* s1, size_t m, const char* s2, size_t n)
 {
+    /* textbook Wagner-Fischer algorithm with full
+     * dynamic-programming matrix.
+     * Operations are set inside the matrix for clarity.
+     * Instead of saving the costs only,
+     * an edit struct is saved per cell, making it easier
+     * to retrieve the information later. */
+
     for (int j = 1; j <= n; j++)
     {
         for (int i = 1; i <= m; i++)
         {
-            int substitution_cost;
-            int del = 0, ins = 0, subst = 0;
-            int best;
+            int set_cost;
+            int add = 0, del = 0, set = 0;
+            int best = 0;
 
-            if (str1[i - 1] == str2[j - 1])
+            if (s1[i - 1] == s2[j - 1])
             {
-                substitution_cost = 0;
+                set_cost = 0;
             }
             else
             {
-                substitution_cost = 1;
+                set_cost = 1;
             }
 
+            add = matrix[i][j - 1].score + 1;
             del = matrix[i - 1][j].score + 1;
-            ins = matrix[i][j - 1].score + 1;
-            subst = matrix[i - 1][j - 1].score + substitution_cost;
+            set = matrix[i - 1][j - 1].score + set_cost;
 
-            best = minmin(del, ins, subst);
+            best = minmin(add, del, set);
 
             matrix[i][j].score = best;
             matrix[i][j].position = i - 1;
-            matrix[i][j].c = str2[j - 1];
+            matrix[i][j].c = s2[j - 1];
 
             if (best == del)
             {
                 matrix[i][j].operation = DEL;
             }
-            else if (best == ins)
+            else if (best == add)
             {
                 matrix[i][j].operation = ADD;
             }
             else
             {
-                if (substitution_cost > 0)
+                if (set_cost > 0)
                 {
                     matrix[i][j].operation = SET;
                 }

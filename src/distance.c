@@ -42,9 +42,9 @@ int distance_string(const char* str1, size_t len1, const char* str2, size_t len2
 
     int distance = 0;
 
+    /* allocate prev and curr rows */
     int* prev = calloc((len2 + 1), sizeof(int));
     int* curr = calloc((len2 + 1), sizeof(int));
-
     if (!curr || !prev)
         return -1;
 
@@ -61,6 +61,7 @@ int distance_string(const char* str1, size_t len1, const char* str2, size_t len2
 
         for (int j = 1; j <= len2; j++)
         {
+            /* Wagner-Fischer, keeping best cost */
             if (str1[i - 1] != str2[j - 1])
             {
                 int k = minmin(curr[j - 1],
@@ -106,6 +107,8 @@ int distance_file(const char* file1, const char* file2)
 
     int dist = 0;
 
+    /* get size of files */
+
     struct stat st1;
     stat(file1, &st1);
     int size1 = st1.st_size;
@@ -147,10 +150,13 @@ int distance_file(const char* file1, const char* file2)
     return dist;
 #else
 
+    /* load files to buffers and find distance */
+
     if (file_load(file1, &buf1) && file_load(file2, &buf2))
     {
         dist = distance_string(buf1, size1, buf2, size2);
 
+        /* free buffers */
         free(buf1);
         free(buf2);
         buf1 = NULL;

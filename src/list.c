@@ -23,16 +23,16 @@
 
 node* list_create(void* data, node* next)
 {
-    node* new_node = (node*) malloc(sizeof(node));
-    if (!new_node)
+    node* new = (node*) malloc(sizeof(node));
+    if (!new)
     {
         return NULL;
     }
 
-    new_node->data = data;
-    new_node->next = next;
+    new->data = data;
+    new->next = next;
 
-    return new_node;
+    return new;
 }
 
 
@@ -40,14 +40,15 @@ node* list_append(node* list, void* data)
 {
     if (list == NULL)
         return NULL;
-    /* go to the last node */
+
+    /* move to the last node */
     node* curr = list;
     while (curr->next != NULL)
     {
         curr = curr->next;
     }
 
-    /* create a new node */
+    /* create a new node there */
     node* new_node = list_create(data,NULL);
     curr->next = new_node;
 
@@ -61,6 +62,9 @@ node* list_filter(node* list, comparison_f f, int op, long value)
     {
         return NULL;
     }
+
+    /* recursively filter list */
+
     if ( f(list->data, op, value) )
     {
         list->next = list_filter(list->next, f, op, value);
@@ -79,11 +83,12 @@ node* list_filter(node* list, comparison_f f, int op, long value)
 
 void list_traverse(node* list, callback_t f)
 {
-    node* cursor = list;
-    while (cursor != NULL)
+    node* curr = list;
+    while (curr != NULL)
     {
-        f(cursor);
-        cursor = cursor->next;
+        /* apply f to node, then go on */
+        f(curr);
+        curr = curr->next;
     }
 }
 

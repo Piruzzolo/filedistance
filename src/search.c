@@ -147,6 +147,7 @@ int cmpfunc(const void* a, const void* b)
     }
     else
     {
+        /* if distances are the same, compare filename */
         return strcmp(nd1->filename, nd2->filename);
     }
 }
@@ -199,7 +200,7 @@ int search_all(const char* f, const char* dir, long limit)
         return -1;
     }
 
-    /* set up parameters needed inside add_file */
+    /* set up parameters needed inside add_file, */
     /* can't pass directly bc of ftw callback signature constraint */
 
     lim = limit;

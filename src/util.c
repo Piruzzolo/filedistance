@@ -99,7 +99,7 @@ int file_load(const char* filename, char** buffer)
 }
 
 
-u_int32_t bytes_to_uint32(const char buf[4])
+u_int32_t bytes_to_uint32(const char* buf)
 {
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }

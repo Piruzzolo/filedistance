@@ -84,6 +84,7 @@ int list_namedistance_min(node* list)
     {
         name_distance* data = (name_distance*) list->data;
 
+        /* find current min */
         if (min > data->distance)
             min = data->distance;
 
