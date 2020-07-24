@@ -100,17 +100,17 @@ int apply_edit_script(const char* infilename, const char* scriptfilename, const 
         if (strncmp(buf, "ADD", 3) == 0)
         {
             /* copy from infile's seek to position + 1 */
-            file_copy(infile, outfile, position + 1);
+            file_copy_to(infile, outfile, position + 1);
             fputc(c, outfile);
         }
         else if (strncmp(buf, "DEL", 3) == 0)
         {
-            file_copy(infile, outfile, position);
+            file_copy_to(infile, outfile, position);
             fseek(infile, 1, SEEK_CUR);
         }
         else if (strncmp(buf, "SET", 3) == 0)
         {
-            file_copy(infile, outfile, position + 1);
+            file_copy_to(infile, outfile, position + 1);
             fseek(outfile, -1, SEEK_CUR);
             fputc(c, outfile);
         }
@@ -120,6 +120,9 @@ int apply_edit_script(const char* infilename, const char* scriptfilename, const 
             return -1;
         }
     }
+
+    /* copy every other char */
+    file_copy(infile, outfile);
 
     /* close files */
     fclose(infile);

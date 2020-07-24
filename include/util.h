@@ -45,8 +45,10 @@ int minmin(int x, int y, int z);
 /// \param out the file to copy to
 /// \param len amount of bytes to copy
 /// \return 0 if succeeded, -1 otherwise
-int file_copy(FILE* infile, FILE* outfile, u_int32_t pos_to);
+int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to);
 
+
+void file_copy(FILE* infile, FILE* outfile);
 
 /// Loads contents of file into buffer
 /// \param filename the file to be loaded

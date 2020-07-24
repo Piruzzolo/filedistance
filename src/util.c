@@ -34,7 +34,7 @@ int minmin(int x, int y, int z)
 }
 
 
-int file_copy(FILE* infile, FILE* outfile, u_int32_t pos_to)
+int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to)
 {
     char c;
 
@@ -48,6 +48,15 @@ int file_copy(FILE* infile, FILE* outfile, u_int32_t pos_to)
     }
 
     return 0;
+}
+
+void file_copy(FILE* infile, FILE* outfile)
+{
+    char c = 0;
+    while (fread(&c, 1, 1, infile))
+    {
+        fputc(c, outfile);
+    }
 }
 
 
