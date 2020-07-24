@@ -33,7 +33,7 @@ int distance_file(const char* file1, const char* file2);
 ///
 /// \param str1 the first string
 /// \param str2 the second string
-/// \return
+/// \return the distance
 int distance_string(const char* str1, size_t len1, const char* str2, size_t len2);
 
 

@@ -19,9 +19,9 @@
 #include <string.h>
 #include <sys/stat.h> // stat
 #ifdef MMAP
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h> // MMAP
+    #include <fcntl.h>    // open
+    #include <unistd.h>   // close
+    #include <sys/mman.h> // MMAP
 #endif
 
 #include "../include/util.h" // min, minmin
@@ -126,11 +126,11 @@ int distance_file(const char* file1, const char* file2)
         buf2 = mmap(NULL, size2, PROT_READ, MAP_PRIVATE, f2,0);
 
         /* give kernel some hints on usage pattern */
-        madvise(buf1, MAX_MAP, MADV_SEQUENTIAL);
-        madvise(buf2, MAX_MAP, MADV_SEQUENTIAL);
+        madvise(buf1, size1, MADV_SEQUENTIAL);
+        madvise(buf2, size2, MADV_SEQUENTIAL);
 
         /* find distance */
-        dist = levenshtein_dist(buf1, size1, buf2, size2);
+        dist = distance_string(buf1, size1, buf2, size2);
     }
     else
     {

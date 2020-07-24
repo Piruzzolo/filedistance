@@ -29,8 +29,8 @@
 #include "../include/list_namedistance.h"
 
 
-#define MAX_OPEN_FD 8 // max dirs open at the same time
-
+/* max dirs open at the same time */
+#define MAX_OPEN_FD 8
 
 char* inputFile = NULL;
 node* list = NULL;

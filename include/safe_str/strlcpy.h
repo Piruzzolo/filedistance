@@ -18,6 +18,14 @@
 #ifndef FILEDISTANCE_STRLCPY_H
 #define FILEDISTANCE_STRLCPY_H
 
+
+/// Size-bounded string copying and concatenation
+///
+/// \param dst destination string
+/// \param src source string
+/// \param dsize len to copy
+/// \return total length of the string tried to create
 size_t strlcpy(char * dst, const char * src, size_t dsize);
+
 
 #endif //FILEDISTANCE_STRLCPY_H

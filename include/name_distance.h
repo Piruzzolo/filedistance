@@ -20,6 +20,7 @@
 
 #include <limits.h>
 
+
 typedef struct
 {
     int distance;
@@ -27,6 +28,9 @@ typedef struct
 } name_distance;
 
 
+/// Prints namedistances' fields
+///
+/// \param nd the element to print
 void namedistance_print(name_distance* nd);
 
 

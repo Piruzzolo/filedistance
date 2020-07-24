@@ -23,10 +23,10 @@
 
 enum {
     EEMPTYLIST
-};
+} list_err;
 
 
-/// Save the list to the array arr
+/// Saves the list to the array arr
 ///
 /// \param list the list to save
 /// \param arr the array
@@ -34,14 +34,14 @@ enum {
 int list_namedistance_save_to_array(node* list, name_distance** arr);
 
 
-/// Find min of distances
+/// Finds min of distances
 ///
 /// \param list the list to go through
 /// \return the min distance found
 int list_namedistance_min(node* list);
 
 
-/// Print filename of node
+/// Prints filename of node
 ///
 /// \param list the node to print
 void list_namedistance_print_name(node* node);

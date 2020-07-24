@@ -48,7 +48,12 @@ int minmin(int x, int y, int z);
 int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to);
 
 
+/// Copies bytes from infile to outfile
+///
+/// \param infile file to copy from
+/// \param outfile file to copy to
 void file_copy(FILE* infile, FILE* outfile);
+
 
 /// Loads contents of file into buffer
 /// \param filename the file to be loaded
@@ -62,5 +67,6 @@ int file_load(const char* filename, char** buffer);
 /// \param buf the char array to convert
 /// \return the converted unsigned value
 u_int32_t bytes_to_uint32(const char* buf);
+
 
 #endif // FILEDISTANCE_UTIL_H

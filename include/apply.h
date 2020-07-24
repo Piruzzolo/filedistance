@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 
+
 enum {
     EEMPTYSCRIPT,
     ECANTOPEN,
@@ -40,5 +41,6 @@ void apply_print_err(int err);
 /// \param outfile the file to save to
 /// \return 0 if succeeds, -1 if err. Sets errno
 int apply_edit_script(const char* infile, const char* filem, const char* outfile);
+
 
 #endif // APPLY_H

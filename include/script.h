@@ -22,26 +22,51 @@
 
 #include "../include/distance.h"
 
+
 typedef enum
 {
     NOP,
     DEL,
     SET,
     ADD
-} edit_type;
+} op_type;
 
+
+/* edit struct is byte-aligned */
 typedef struct _edit
 {
-    edit_type operation   : 2;
+    op_type operation     : 2;
     unsigned int score    : 14;
     unsigned int position : 16;
     char c;
 } edit;
 
+
+/// Saves e binarily to a file according to the prescribed format
+///
+/// \param e the edit to save
+/// \param outfile the file to save to
 void script_print_edit(const edit* e, FILE* outfile);
 
+
+/// Finds the minimal edit script and distance between two strings
+///
+/// \param str1 first string
+/// \param len1 len of first string
+/// \param str2 second string
+/// \param len2 length of second string
+/// \param script edit script to save
+/// \return the distance
 int script_string_distance(const char* str1, size_t len1, const char* str2, size_t len2, edit** script);
 
+
+/// Finds the minimal edit script and distance between two files, saving script it to outfile
+///
+/// \param file1 first file
+/// \param file2 second file
+/// \param outfile file to save to
+/// \return the distance
 int script_file_distance(const char* file1, const char* file2, const char* outfile);
+
 
 #endif // FILEDISTANCE_SCRIPT_H

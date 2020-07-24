@@ -28,23 +28,28 @@
 
 #define CMDSIZE 8
 
+char* SCRIPTEMPTY     = "ERROR: Script file is empty.               \n";
+char* CANTOPENMORE    = "ERROR: Can't open one or more files.       \n";
+char* INVALIDCORRUPTD = "ERROR: Script file is invalid or corrupted.\n";
+
+
 void apply_print_err(int err)
 {
     switch (err)
     {
         case EEMPTYSCRIPT:
         {
-            printf("ERROR: Script file is empty.\n");
+            printf("%s", SCRIPTEMPTY);
             break;
         }
         case ECANTOPEN:
         {
-            printf("ERROR: Can't open one or more files.\n");
+            printf("%s", CANTOPENMORE);
             break;
         }
         case ECORRUPTD:
         {
-            printf("ERROR: Script file is invalid or corrupted.\n");
+            printf("%s", INVALIDCORRUPTD);
             break;
         }
 
@@ -63,9 +68,9 @@ int apply_edit_script(const char* infilename, const char* scriptfilename, const 
 
     /* open infile and scriptfile read, open outfile write */
 
-    FILE* infile     = fopen(infilename,  "r");
-    FILE* scriptfile = fopen(scriptfilename,   "r");
-    FILE* outfile    = fopen(outfilename, "w");
+    FILE* infile     = fopen(infilename,     "r");
+    FILE* scriptfile = fopen(scriptfilename, "r");
+    FILE* outfile    = fopen(outfilename,    "w");
 
     if (!infile || !scriptfile || !outfile)
     {

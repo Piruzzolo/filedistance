@@ -56,7 +56,7 @@ typedef bool (*comparison_f)(void* data, op_t op, long value);
 node* list_create(void* data, node* next);
 
 
-/// Append an element to list
+/// Appends an element to list
 ///
 /// \param list the list
 /// \param data the payload
@@ -64,7 +64,7 @@ node* list_create(void* data, node* next);
 node* list_append(node* list, void* data);
 
 
-/// Filter a list with the function f
+/// Filters a list with the function f
 ///
 /// \param list
 /// \param op

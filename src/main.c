@@ -31,14 +31,14 @@
 #include "../include/search.h"
 
 
-char* ABORT    = "\nSIGINT received. Stop.               \n";
 char* NUMARGS  = "ERROR: Wrong number of arguments.      \n";
 char* CANTSAVE = "ERROR: Can't save the output file.     \n";
-char* CANTOPEN = "ERROR: can't open the file(s).         \n";
-char* ONEARG   = "ERROR: expected at least one argument  \n";
-char* DIDUMEAN = "Command not correct, did you mean '%s'?\n";
-char* NODIGIT  = "ERROR: no digits were found.           \n";
+char* CANTOPEN = "ERROR: Can't open the file(s).         \n";
+char* ONEARG   = "ERROR: Expected at least one argument  \n";
+char* NODIGIT  = "ERROR: No digits were found.           \n";
 char* NOTVALID = "ERROR: Command %s not valid.         \n\n";
+char* DIDUMEAN = "Command not correct, did you mean '%s'?\n";
+char* ABORT    = "\nSIGINT received. Stop.               \n";
 
 
 void parse_int_or_fail(const char* str, long* v);
@@ -225,6 +225,7 @@ void parse_int_or_fail(const char* str, long* v)
     errno = 0;
     long val = strtol(str, &endptr, 10);
 
+    /* properly handle cases */
     if ((errno == ERANGE && (val == LONG_MAX || val == LONG_MIN)) || (errno != 0 && val == 0))
     {
         exit(EXIT_FAILURE);
