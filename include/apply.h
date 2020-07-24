@@ -40,7 +40,7 @@ void apply_print_err(int err);
 /// \param filem edit script with commands
 /// \param outfile the file to save to
 /// \return 0 if succeeds, -1 if err. Sets errno
-int apply_edit_script(const char* infile, const char* filem, const char* outfile);
+int apply_edit_script(const char* infilename, const char* scriptfilename, const char* outfilename);
 
 
 #endif // APPLY_H
