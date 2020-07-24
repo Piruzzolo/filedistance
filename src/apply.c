@@ -106,11 +106,16 @@ int apply_edit_script(const char* infilename, const char* scriptfilename, const 
         else if (strncmp(buf, "DEL", 3) == 0)
         {
             file_copy_to(infile, outfile, position);
+
+            /* advance infile's seek so to skip a char */
             fseek(infile, 1, SEEK_CUR);
         }
         else if (strncmp(buf, "SET", 3) == 0)
         {
+            /* copy from infile's seek to position + 1 */
             file_copy_to(infile, outfile, position + 1);
+
+            /* step back one char in outfile */
             fseek(outfile, -1, SEEK_CUR);
             fputc(c, outfile);
         }
