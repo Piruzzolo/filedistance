@@ -34,7 +34,7 @@ int minmin(int x, int y, int z)
 }
 
 
-int file_copy(FILE* infile, FILE* outfile, int pos_to)
+int file_copy(FILE* infile, FILE* outfile, u_int32_t pos_to)
 {
     char c;
 

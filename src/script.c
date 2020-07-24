@@ -189,7 +189,6 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
         int i = len1;
         int j = len2;
         edit* curr = &mat[i][j];
-
         while (i >= 0 || j >= 0)
         {
             switch (curr->operation)
@@ -210,7 +209,6 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
                     curr = &mat[--i][j];
                     break;
                 }
-
                 default:
                 {
                     if (curr->operation == NONE)
@@ -253,6 +251,15 @@ int append_script_file(const char* file, edit* script, size_t len)
     {
         for (int i = 0; i < len; i++)
         {
+            //if (script[i].position == script[i-1].position
+            //&&  script[i].operation == script[i-1].operation && (script[i].operation == DEL || script[i].operation == SET)
+            // && i > 0)
+            //    cnt++;
+            //else
+            //    cnt = 0;
+
+           // script[i].position += cnt;
+
             script_print_edit(&script[i], f);
         }
         return 0;
