@@ -151,6 +151,11 @@ int distance_file(const char* file1, const char* file2)
     {
         dist = distance_string(buf1, size1, buf2, size2);
 
+        free(buf1);
+        free(buf2);
+        buf1 = NULL;
+        buf2 = NULL;
+
         return dist;
     }
     else
