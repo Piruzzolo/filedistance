@@ -19,17 +19,24 @@
 #define SEARCH_H
 
 #include <stdio.h>
-#include <dirent.h>
 
-typedef struct _name_distance
-{
-    int distance;
-    char filename[PATH_MAX];
 
-} name_distance;
-
+/// Search files in dir (and subdirs) with distance from inputfile <= limit,
+/// printing them to stdout sorted by length ascending, filename ascending
+///
+/// \param inputfile the file to compare against
+/// \param dir the directory to traverse
+/// \param limit the limit on the distance
+/// \return 0 if succeeded, -1 otherwise
 int search_all(const char* inputfile, const char* dir, long limit);
 
+/// Search files in dir (and subdirs) with distance from inputfile == limit,
+/// printing them to stdout sorted by length ascending, filename ascending
+///
+/// \param inputfile the file to compare against
+/// \param dir the directory to traverse
+/// \param limit the limit on the distance
+/// \return 0 if succeeded, -1 otherwise
 int search_min(const char* filename, const char* dir);
 
 #endif //UNTITLED_SEARCH_H

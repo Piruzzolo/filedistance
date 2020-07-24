@@ -17,34 +17,34 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h> // stat
+#ifdef MMAP
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
+#include <sys/mman.h> // MMAP
+#endif
 
-#include "../include/util.h" // minmin, min
+#include "../include/util.h" // min, minmin
 
-#define BUFSIZE 256
 
-#define MB 1024*1024 // bytes
-
-#define MAX_MAP 10*MB
-
-int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len2)
+int distance_string(const char* str1, size_t len1, const char* str2, size_t len2)
 {
-    if (len1 == 0) return len2;
+    if (len1 == 0)
+        return len2;
 
-    if (len2 == 0) return len1;
+    if (len2 == 0)
+        return len1;
 
     if (len1 < len2)
     {
-        return levenshtein_dist(str2, len2, str1, len1);
+        return distance_string(str2, len2, str1, len1);
     }
 
     int distance = 0;
 
     int* prev = calloc((len2 + 1), sizeof(int));
     int* curr = calloc((len2 + 1), sizeof(int));
+
     if (!curr || !prev)
         return -1;
 
@@ -74,26 +74,35 @@ int levenshtein_dist(const char* str1, size_t len1, const char* str2, size_t len
             }
         }
 
+        /* swap arrays */
         tmp = prev;
         prev = curr;
         curr = tmp;
 
+        /* reset curr */
         memset((void*) curr, 0, sizeof(int) * (len2 + 1));
     }
 
     distance = prev[len2];
 
+    /* free & avoid double free */
     free(curr);
     free(prev);
+    curr = NULL;
+    prev = NULL;
 
     return distance;
 }
 
-
-int levenshtein_file_distance(const char* file1, const char* file2)
+int distance_file(const char* file1, const char* file2)
 {
     char* buf1 = NULL;
     char* buf2 = NULL;
+
+    if (file1 == NULL || file2 == NULL)
+    {
+        return -1;
+    }
 
     int dist = 0;
 
@@ -105,14 +114,22 @@ int levenshtein_file_distance(const char* file1, const char* file2)
     stat(file2, &st2);
     int size2 = st2.st_size;
 
+#ifdef MMAP
+    /* open files read only */
     int f1 = open(file1, O_RDONLY);
     int f2 = open(file2, O_RDONLY);
 
     if (f1 != -1 && f2 != -1)
     {
-        buf1 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f1,0);
-        buf2 = mmap(NULL, MAX_MAP, PROT_READ, MAP_PRIVATE, f2,0);
+        /* memory-map files */
+        buf1 = mmap(NULL, size1, PROT_READ, MAP_PRIVATE, f1,0);
+        buf2 = mmap(NULL, size2, PROT_READ, MAP_PRIVATE, f2,0);
 
+        /* give kernel some hints on usage pattern */
+        madvise(buf1, MAX_MAP, MADV_SEQUENTIAL);
+        madvise(buf2, MAX_MAP, MADV_SEQUENTIAL);
+
+        /* find distance */
         dist = levenshtein_dist(buf1, size1, buf2, size2);
     }
     else
@@ -120,11 +137,26 @@ int levenshtein_file_distance(const char* file1, const char* file2)
         return -1;
     }
 
-    munmap(buf1, MAX_MAP);
-    munmap(buf2, MAX_MAP);
+    /* unmap files */
+    munmap(buf1, size1);
+    munmap(buf2, size2);
 
     close(f1);
     close(f2);
 
     return dist;
+#else
+
+    if (file_load(file1, &buf1) && file_load(file2, &buf2))
+    {
+        dist = distance_string(buf1, size1, buf2, size2);
+
+        return dist;
+    }
+    else
+    {
+        return -1;
+    }
+
+#endif
 }

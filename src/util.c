@@ -17,8 +17,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>  // strlen
-#include <stdbool.h>
+#include <sys/stat.h>
 
 #include "../include/util.h"
 
@@ -28,56 +27,79 @@ int min(int x, int y)
     return (x < y) ? x : y;
 }
 
+
 int minmin(int x, int y, int z)
 {
     return min(min(x, y), z);
 }
 
-int count_occurrences(FILE* file, const char* word)
-{
-    int count = 0;
-    int ch = 0;
-    size_t len = strlen(word);
 
-    while (true)
-    {
-        if ((ch = fgetc(file)) == EOF)
-            break;
-
-        if ((char) ch != *word)
-            continue;
-
-        for (int i = 1; i < len; ++i)
-        {
-            if ((ch = fgetc(file)) == EOF)
-                return count;
-
-            if ((char) ch != word[i])
-            {
-                fseek(file, 1 - i, SEEK_CUR);
-                continue;
-            }
-        }
-        count++;
-    }
-
-    rewind(file);
-    return count;
-}
-
-
-int file_copy(FILE* in, FILE* out, unsigned int len)
+int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to)
 {
     char c;
 
-    for (int i = 0; i < len; i++)
+    while (ftell(infile) < pos_to)
     {
-        c = getc(in);
-        if (c == EOF)
-            return -1;
-        putc(c, out);
+        /* read & copy char by char */
+        if (fread(&c, 1, 1, infile) != 0)
+        {
+            fputc(c, outfile);
+        }
     }
 
     return 0;
 }
 
+
+void file_copy(FILE* infile, FILE* outfile)
+{
+    char c = 0;
+    while (fread(&c, 1, 1, infile))
+    {
+        fputc(c, outfile);
+    }
+}
+
+
+int file_load(const char* filename, char** buffer)
+{
+    /* open read */
+    FILE *f = fopen(filename, "r");
+    if (f == NULL)
+    {
+        *buffer = NULL;
+        return -1;
+    }
+
+    /* get file size */
+    struct stat st;
+    stat(filename, &st);
+    int size = st.st_size;
+
+    /* reset seek */
+    fseek(f, 0, SEEK_SET);
+
+    /* allocate buffer */
+    *buffer = (char*) calloc(size + 1, sizeof(char));
+
+    /* copy file contents into buffer */
+    if (!*buffer || fread(*buffer, sizeof(char), size, f) != size)
+    {
+        free(*buffer);
+        return -2;
+    }
+
+    /* close file */
+    fclose(f);
+
+    /* null-terminate buffer */
+    (*buffer)[size] = 0;
+
+    return size;
+}
+
+
+u_int32_t bytes_to_uint32(const char buf[4])
+{
+    return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+}

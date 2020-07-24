@@ -15,26 +15,12 @@
 *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef DISTANCE_H
-#define DISTANCE_H
+#include <stdio.h>
 
-#include <stddef.h> // size_t
-
-
-/// Finds the distance between file1 and file2
-///
-/// \param file1 first file
-/// \param file2 second file
-/// \return the distance
-int distance_file(const char* file1, const char* file2);
+#include "../include/name_distance.h"
 
 
-/// Finds the Levenshtein distance between str1 and str2
-///
-/// \param str1 the first string
-/// \param str2 the second string
-/// \return
-int distance_string(const char* str1, size_t len1, const char* str2, size_t len2);
-
-
-#endif // DISTANCE_H
+void namedistance_print(name_distance* nd)
+{
+    printf("%d %s\n", nd->distance, nd->filename);
+}

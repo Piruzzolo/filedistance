@@ -15,9 +15,7 @@
 *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include <dirent.h>
-#include <sys/stat.h>
 #include <stdlib.h>
 #include <ftw.h>     // ftw
 #include <limits.h>  // INT_MAX
@@ -27,17 +25,18 @@
 #include "../include/search.h"
 #include "../include/list.h"
 #include "../include/distance.h"
+#include "../include/name_distance.h"
 #include "../include/list_namedistance.h"
+
 
 #define MAX_OPEN_FD 8 // max dirs open at the same time
 
-char* inputFile;
 
+char* inputFile = NULL;
 node* list = NULL;
-
 long lim = INT_MAX;
 
-bool compare_fun(void* pVoid, long op, int value)
+bool compare_fun(void* pVoid, op_t op, int value)
 {
     int dist = ((name_distance*) pVoid)->distance;
 
@@ -70,24 +69,7 @@ bool compare_fun(void* pVoid, long op, int value)
 }
 
 
-int min_list_file_distance(node* head)
-{
-    int min = INT_MAX;
-
-    while (head != NULL)
-    {
-        name_distance* data = (name_distance*) head->data;
-        if (min > data->distance)
-            min = data->distance;
-
-        head = head->next;
-    }
-
-    return min;
-}
-
-
-int add_file(const char *fname, const struct stat *st, int type)
+int add_file(const char* fname, const struct stat* st, int type)
 {
     /* must be a regular file */
     if (type == FTW_D)
@@ -96,38 +78,48 @@ int add_file(const char *fname, const struct stat *st, int type)
     /* file > lim has always distance > lim */
     if (st->st_size > lim)
     {
-        /* dont't process */
+        /* don't process */
         return 0;
     }
 
-    int distance = levenshtein_file_distance(fname, inputFile);
+    /* get distance to inputFile */
+    int distance = distance_file(fname, inputFile);
     if (distance < 0)
     {
         return -1;
     }
 
+    /* create node */
     name_distance* fd = (name_distance*) malloc(sizeof(name_distance));
     if (!fd)
     {
         return -1;
     }
+    memset(fd, 0, sizeof(name_distance));
 
-    fd->distance = distance;
-
+    /* resolve path to absolute */
     char resolvedPath[PATH_MAX + 1];
-
     char* ptr = realpath(fname, resolvedPath);
-
-    /* copy & detect truncation */
-    if (strlcpy(fd->filename, ptr, sizeof(fd->filename)) >= sizeof(fd->filename))
+    if (!ptr)
     {
-        // error
         return -1;
     }
 
+    /* set node data: distance and filename */
+    /* copy & detect truncation */
+
+    fd->distance = distance;
+    if (strlcpy(fd->filename, ptr, sizeof(fd->filename)) >= sizeof(fd->filename))
+    {
+        /* error */
+        return -1;
+    }
+
+    /* add to list */
+
     if (list == NULL)
     {
-        /* create list if first element */
+        /* create list if first node */
         list = list_create(fd, NULL);
     }
     else
@@ -137,13 +129,6 @@ int add_file(const char *fname, const struct stat *st, int type)
     }
 
     return 0;
-}
-
-void print_node_name(node* node)
-{
-    name_distance* nd = (name_distance*) node->data;
-
-    printf("%s\n", nd->filename);
 }
 
 
@@ -166,36 +151,39 @@ int cmpfunc(const void* a, const void* b)
     }
 }
 
+
 int search_min(const char* f, const char* dir)
 {
     if (f == NULL || dir == NULL)
     {
-        //perror ...
         return -1;
     }
 
+    /* get size of f */
     struct stat st;
     stat(f, &st);
+    int sizef = st.st_size;
 
-    lim = st.st_size;
-
+    /* set up parameters needed inside add_file
+       can't pass directly bc of ftw callback signature constraint */
+    lim = sizef;
     inputFile = (char*) f;
 
-    /* dir traversal, 8 open dirs max */
+    /* dir traversal, MAX_OPEN_FD open dirs max */
     int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {
-        // error
+        return -1;
     }
 
-    // find min of list
-    int min = min_list_file_distance(list);
+    /* find min of list */
+    int min = list_namedistance_min(list);
 
-    /* filter list in place, keep elems w/ distance = min */
-    node* filterd = list_filter(list, EQUAL_TO, min, compare_fun);
+    /* filter list in place, keep elems w/ distance == min */
+    node* filterd = list_filter(list, (comparison_f) compare_fun, EQUAL_TO, min);
 
     /* print filenames */
-    list_traverse(filterd, (callback_t) print_node_name);
+    list_traverse(filterd, (callback_t) list_namedistance_print_name);
 
     /* frees up the list */
     list_free(filterd);
@@ -204,43 +192,44 @@ int search_min(const char* f, const char* dir)
 }
 
 
-void print_fd(name_distance nd)
-{
-    printf("%d %s\n", nd.distance, nd.filename);
-}
-
 int search_all(const char* f, const char* dir, long limit)
 {
-    if (f == NULL || dir == NULL)
+    if (!f || !dir)
     {
-        //perror ...
         return -1;
     }
 
-    lim = limit;
+    /* set up parameters needed inside add_file */
+    /* can't pass directly bc of ftw callback signature constraint */
 
+    lim = limit;
     inputFile = (char*) f;
 
-    // dir traversal, 8 dir aperte max
+    /* dir traversal, MAX_OPEN_FD open dirs max */
     int res = ftw(dir, add_file, MAX_OPEN_FD);
     if (res != 0)
     {
-        // error
+        return -1;
     }
 
     /* filter list in place, keep elems w/ distance <= limit */
-    node* filtered = list_filter(list, EQ_LESS_THAN, limit, compare_fun);
+    node* filtered = list_filter(list, (comparison_f) compare_fun, EQ_LESS_THAN, limit);
 
+    /* get number of nodes in list */
     int len = list_count(filtered);
 
     /* no files found, return */
     if (len <= 0)
         return 0;
 
-    name_distance* arr = NULL;
-
     /* save list to array */
-    list_namedistance_save_to_array(filtered, &arr);
+    name_distance* arr = NULL;
+    if (list_namedistance_save_to_array(filtered, &arr) == -1)
+    {
+        /* free list */
+        list_free(filtered);
+        return -1;
+    }
 
     /* free list */
     list_free(filtered);
@@ -251,7 +240,7 @@ int search_all(const char* f, const char* dir, long limit)
     /* print all */
     for (int i = 0; i < len; i++)
     {
-        print_fd(arr[i]);
+        namedistance_print(&arr[i]);
     }
 
     return 0;

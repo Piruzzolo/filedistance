@@ -1,4 +1,4 @@
-/* This file is part of FileDistance
+/* This file is part of filedistance
 *  Copyright (C) 2020  Marco Savelli
 *
 *  This program is free software: you can redistribute it and/or modify
@@ -21,19 +21,12 @@
 #include "../include/list.h"
 
 
-/*
-    create a new node
-    initialize the data and next field
-
-    return the newly created node
-*/
 node* list_create(void* data, node* next)
 {
     node* new_node = (node*) malloc(sizeof(node));
-    if (new_node == NULL)
+    if (!new_node)
     {
-        printf("Error creating a new node.\n"); // todo
-        exit(0);
+        return NULL;
     }
 
     new_node->data = data;
@@ -42,54 +35,51 @@ node* list_create(void* data, node* next)
     return new_node;
 }
 
-/*
-    add a new node at the end of the list
-*/
-node* list_append(node* head, void* data)
+
+node* list_append(node* list, void* data)
 {
-    if (head == NULL)
+    if (list == NULL)
         return NULL;
     /* go to the last node */
-    node *cursor = head;
-    while (cursor->next != NULL)
+    node* curr = list;
+    while (curr->next != NULL)
     {
-        cursor = cursor->next;
+        curr = curr->next;
     }
 
     /* create a new node */
     node* new_node = list_create(data,NULL);
-    cursor->next = new_node;
+    curr->next = new_node;
 
-    return head;
+    return list;
 }
 
 
-node* list_filter(node* head, int op, long value, comparison_f f)
+node* list_filter(node* list, comparison_f f, int op, long value)
 {
-    if (head == NULL)
+    if (list == NULL)
     {
         return NULL;
     }
-    if (f(head->data, op, value))
+    if ( f(list->data, op, value) )
     {
-        head->next = list_filter(head->next, op, value, f);
-        return head;
+        list->next = list_filter(list->next, f, op, value);
+        return list;
     }
     else
     {
-        node* next = head->next;
-        free(head);
+        node* next = list->next;
+        free(list);
+        list = NULL;
 
-        return list_filter(next, op, value, f);
+        return list_filter(next, f, op, value);
     }
 }
 
-/*
-    traverse the linked list
-*/
-void list_traverse(node* head, callback_t f)
+
+void list_traverse(node* list, callback_t f)
 {
-    node* cursor = head;
+    node* cursor = list;
     while (cursor != NULL)
     {
         f(cursor);
@@ -97,38 +87,41 @@ void list_traverse(node* head, callback_t f)
     }
 }
 
-/*
-    remove all element of the list
-*/
-void list_free(node* head)
-{
-    node *cursor, *tmp;
 
-    if(head != NULL)
+void list_free(node* list)
+{
+    node* curr;
+    node* tmp;
+
+    if (list != NULL)
     {
-        cursor = head->next;
-        head->next = NULL;
-        while(cursor != NULL)
+        curr = list->next;
+        list->next = NULL;
+        while (curr != NULL)
         {
-            tmp = cursor->next;
-            free(cursor);
-            cursor = tmp;
+            tmp = curr->next;
+            free(curr);
+            curr = tmp;
         }
     }
 }
 
-/*
-    return the number of elements in the list
-*/
-int list_count(node* head)
+
+int list_count(node* list)
 {
-    node* cursor = head;
+    if (list == NULL)
+    {
+        return -1;
+    }
+
+    node* curr = list;
     int c = 0;
-    while(cursor != NULL)
+    while (curr != NULL)
     {
         c++;
-        cursor = cursor->next;
+        curr = curr->next;
     }
+
     return c;
 }
 

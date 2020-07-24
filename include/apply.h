@@ -21,16 +21,24 @@
 #include <stdio.h>
 
 enum {
-    EEMPTYSCRIPT = 1000,
+    EEMPTYSCRIPT,
     ECANTOPEN,
     ECORRUPTD
 } applyErr_t;
 
+
+/// Prints err in text form
+///
+/// \param err the err to print
 void apply_print_err(int err);
 
-/**
- * @brief Applies the edit operations in file scriptfile to infile, writing the result to outfile
- */
+
+/// Applies the filem edits to infile, outputting to outfile
+///
+/// \param infile the file to apply to
+/// \param filem edit script with commands
+/// \param outfile the file to save to
+/// \return 0 if succeeds, -1 if err. Sets errno
 int apply_edit_script(const char* infile, const char* filem, const char* outfile);
 
 #endif // APPLY_H

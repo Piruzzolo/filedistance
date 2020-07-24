@@ -16,45 +16,86 @@
 */
 
 #include <stdlib.h>
+#include <errno.h>
+#include <limits.h> // INT_MAX
 
 #include "../include/list.h"
 #include "../include/list_namedistance.h"
 
+
 int list_namedistance_save_to_array(node* list, name_distance** arr)
 {
     int cnt = list_count(list);
-    if (cnt)
+    if (cnt > 0)
     {
+        /* alloc array to save to */
         *arr = (name_distance*) calloc(cnt, sizeof(name_distance));
-        node* cursor = list;
-        int i = 0;
-        while (cursor != NULL)
+        if (*arr)
         {
-            name_distance* nd = (name_distance*) (cursor->data);
-            int dist = nd->distance;
-            char* entry = malloc(sizeof(nd->filename));
-            if (entry)
+            node* curr = list;
+            int index = 0;
+
+            /* for each item of the list */
+            while (curr != NULL)
             {
-                // copy & detect truncation
-                if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
+                /* get payload struct */
+                name_distance* nd = (name_distance*) (curr->data);
+                int dist = nd->distance;
+
+                /* alloc arr[i] */
+                char* entry = malloc(sizeof(nd->filename));
+                if (entry)
                 {
-                    // error
-                    return -1;
+                    /* copy & detect truncation */
+                    if (strlcpy(entry, nd->filename, sizeof(nd->filename)) >= sizeof(nd->filename))
+                    {
+                        return -1;
+                    }
                 }
+
+                /* set fields of arr[index] */
+                (*arr)[index].distance = dist;
+                strlcpy((*arr)[index].filename, entry, sizeof(nd->filename));
+
+                curr = curr->next;
+                index++;
             }
 
-            (*arr)[i].distance = dist;
-            strlcpy((*arr)[i].filename, entry, sizeof(nd->filename));
-
-            cursor = cursor->next;
-            i++;
+            return 0;
         }
-
-        return 0;
+        else
+        {
+            return -1;
+        }
     }
     else
     {
+        errno = EEMPTYLIST;
         return -1;
     }
+}
 
+
+int list_namedistance_min(node* list)
+{
+    int min = INT_MAX;
+
+    while (list != NULL)
+    {
+        name_distance* data = (name_distance*) list->data;
+
+        if (min > data->distance)
+            min = data->distance;
+
+        list = list->next;
+    }
+
+    return min;
+}
+
+
+void list_namedistance_print_name(node* node)
+{
+    name_distance* nd = (name_distance*) node->data;
+    printf("%s\n", nd->filename);
 }

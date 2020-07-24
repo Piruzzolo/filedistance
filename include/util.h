@@ -21,13 +21,46 @@
 #include <stdio.h>
 #include "script.h"
 
+
+/// Calculates min between x and y
+///
+/// \param x first integer
+/// \param y second integer
+/// \return the min
 int min(int x, int y);
 
+
+/// Calculates the min between 3 values
+///
+/// \param x first integer
+/// \param y second integer
+/// \param z third integer
+/// \return the min
 int minmin(int x, int y, int z);
 
-int file_copy(FILE* in, FILE* out, unsigned int len);
 
-int count_occurrences(FILE* file, const char* word);
+/// Copies len bytes from in to out, starting off from their current seek
+///
+/// \param in the file to copy from
+/// \param out the file to copy to
+/// \param len amount of bytes to copy
+/// \return 0 if succeeded, -1 otherwise
+int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to);
 
+
+void file_copy(FILE* infile, FILE* outfile);
+
+/// Loads contents of file into buffer
+/// \param filename the file to be loaded
+/// \param buffer the buffer to copy into
+/// \return 0 if succeeded, -1 otherwise
+int file_load(const char* filename, char** buffer);
+
+
+/// Converts buf to unsigned int 32 bit
+///
+/// \param buf the char array to convert
+/// \return the converted unsigned value
+u_int32_t bytes_to_uint32(const char* buf);
 
 #endif // FILEDISTANCE_UTIL_H

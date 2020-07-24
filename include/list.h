@@ -32,7 +32,7 @@ typedef struct node
     struct node* next;
 } node;
 
-enum
+typedef enum
 {
     EQUAL_TO,
     LESS_THAN,
@@ -41,26 +41,57 @@ enum
     EQ_GTR_THAN
 } op_t;
 
+
+/* callbacks and function with defined prototypes,
+ * just for convenience */
+
 typedef void (*callback_t)(node* data);
+typedef bool (*comparison_f)(void* data, op_t op, long value);
 
-typedef bool (*comparison_f)(void* data, long op, int value);
-
+/// Creates a new list
+///
+/// \param data the payload
+/// \param next the next node
+/// \return a pointer to the node created
 node* list_create(void* data, node* next);
 
-node* list_append(node* head, void* data);
 
-node* list_filter(node* head, int op, long value, comparison_f f);
+/// Append an element to list
+///
+/// \param list the list
+/// \param data the payload
+/// \return a pointer to the node created
+node* list_append(node* list, void* data);
 
-/*
-    traverse the linked list
-*/
-void list_traverse(node* head, callback_t f);
 
-void list_free(node *head);
-/*
-    return the number of elements in the list
-*/
-int list_count(node *head);
+/// Filter a list with the function f
+///
+/// \param list
+/// \param op
+/// \param value
+/// \param f
+/// \return
+node* list_filter(node* list, comparison_f f, int op, long value);
+
+
+/// Traverses the list applying f at each node
+///
+/// \param list the list to traverse
+/// \param f callback to apply
+void list_traverse(node* list, callback_t f);
+
+
+/// Deallocates the list
+///
+/// \param list the list to be deallocated
+void list_free(node* list);
+
+
+/// Counts the items of the list
+///
+/// \param list the list to search into
+/// \return the count of the items
+int list_count(node* list);
 
 
 #endif //FILEDISTANCE_LIST_H
