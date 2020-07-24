@@ -87,6 +87,7 @@ int main(int argc, char** argv)
     {
         printf("%s", ONEARG);
         print_usage();
+        return 0;
     }
 
     if (strcmp(argv[1], "distance") == 0)
