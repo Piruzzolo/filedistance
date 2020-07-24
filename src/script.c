@@ -27,7 +27,7 @@ void script_print_edit(const edit* e, FILE* outfile)
 {
     unsigned int n = htonl(e->position);
     char b = 0;
-    char* op;
+    char* op = NULL;
     switch (e->operation)
     {
         case ADD:
