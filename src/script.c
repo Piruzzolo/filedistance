@@ -168,14 +168,14 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
         return len1;
     }
 
-    edit** mat = levenshtein_create_matrix(len1, len2);
-    if (!mat)
+    edit** matrix = levenshtein_create_matrix(len1, len2);
+    if (!matrix)
     {
         *script = NULL;
         return 0;
     }
 
-    dist = levenshtein_fill_matrix(mat, str1, len1, str2, len2);
+    dist = levenshtein_fill_matrix(matrix, str1, len1, str2, len2);
 
     *script = malloc(dist * sizeof(edit));
     if (!(*script))
@@ -187,7 +187,7 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
         unsigned int p = dist - 1;
         int i = len1;
         int j = len2;
-        edit* curr = &mat[i][j];
+        edit* curr = &matrix[i][j];
         while (i >= 0 || j >= 0)
         {
             switch (curr->operation)
@@ -197,7 +197,7 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
                     memcpy(*script + p, curr, sizeof(edit));
                     p--;
 
-                    curr = &mat[i][--j];
+                    curr = &matrix[i][--j];
                     break;
                 }
                 case DEL:
@@ -205,20 +205,20 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
                     memcpy(*script + p, curr, sizeof(edit));
                     p--;
 
-                    curr = &mat[--i][j];
+                    curr = &matrix[--i][j];
                     break;
                 }
                 default:
                 {
                     if (curr->operation == NOP)
                     {
-                        curr = &mat[--i][--j];
+                        curr = &matrix[--i][--j];
                         continue;
                     }
                     memcpy(*script + p, curr, sizeof(edit));
                     p--;
 
-                    curr = &mat[--i][--j];
+                    curr = &matrix[--i][--j];
                     break;
                 }
             }
@@ -228,12 +228,12 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
     /* free matrix's inner arrays */
     for (int i = 0; i <= len1; i++)
     {
-        free(mat[i]);
+        free(matrix[i]);
     }
 
     /* free matrix */
-    free(mat);
-    mat = NULL;
+    free(matrix);
+    matrix = NULL;
 
     return dist;
 }
