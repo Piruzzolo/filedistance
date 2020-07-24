@@ -71,7 +71,7 @@ node* list_append(node* list, void* data);
 /// \param value
 /// \param f
 /// \return
-node* list_filter(node* list, int op, long value, comparison_f f);
+node* list_filter(node* list, comparison_f f, int op, long value);
 
 
 /// Traverses the list applying f at each node

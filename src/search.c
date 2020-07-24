@@ -28,7 +28,9 @@
 #include "../include/name_distance.h"
 #include "../include/list_namedistance.h"
 
+
 #define MAX_OPEN_FD 8 // max dirs open at the same time
+
 
 char* inputFile = NULL;
 node* list = NULL;
@@ -67,7 +69,7 @@ bool compare_fun(void* pVoid, op_t op, int value)
 }
 
 
-int add_file(const char *fname, const struct stat *st, int type)
+int add_file(const char* fname, const struct stat* st, int type)
 {
     /* must be a regular file */
     if (type == FTW_D)
@@ -98,11 +100,15 @@ int add_file(const char *fname, const struct stat *st, int type)
     /* resolve path to absolute */
     char resolvedPath[PATH_MAX + 1];
     char* ptr = realpath(fname, resolvedPath);
+    if (!ptr)
+    {
+        return -1;
+    }
 
     /* set node data: distance and filename */
     /* copy & detect truncation */
-    fd->distance = distance;
 
+    fd->distance = distance;
     if (strlcpy(fd->filename, ptr, sizeof(fd->filename)) >= sizeof(fd->filename))
     {
         /* error */
@@ -150,10 +156,10 @@ int search_min(const char* f, const char* dir)
 {
     if (f == NULL || dir == NULL)
     {
-        //perror ...
         return -1;
     }
 
+    /* get size of f */
     struct stat st;
     stat(f, &st);
     int sizef = st.st_size;
@@ -174,7 +180,7 @@ int search_min(const char* f, const char* dir)
     int min = list_namedistance_min(list);
 
     /* filter list in place, keep elems w/ distance == min */
-    node* filterd = list_filter(list, EQUAL_TO, min, (comparison_f) compare_fun);
+    node* filterd = list_filter(list, (comparison_f) compare_fun, EQUAL_TO, min);
 
     /* print filenames */
     list_traverse(filterd, (callback_t) list_namedistance_print_name);
@@ -207,8 +213,9 @@ int search_all(const char* f, const char* dir, long limit)
     }
 
     /* filter list in place, keep elems w/ distance <= limit */
-    node* filtered = list_filter(list, EQ_LESS_THAN, limit, (comparison_f) compare_fun);
+    node* filtered = list_filter(list, (comparison_f) compare_fun, EQ_LESS_THAN, limit);
 
+    /* get number of nodes in list */
     int len = list_count(filtered);
 
     /* no files found, return */

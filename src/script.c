@@ -25,46 +25,41 @@
 
 void script_print_edit(const edit* e, FILE* outfile)
 {
+    unsigned int n = htonl(e->position);
+    char b = 0;
+    char* op;
     switch (e->operation)
     {
         case ADD:
         {
-            const char op[] = "ADD";
-            unsigned int n = htonl(e->position);
-            char b = e->c;
-            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
-            fwrite(&n, sizeof(unsigned int), 1, outfile);
-            fwrite(&b, 1, 1, outfile);
+            op = "ADD";
+            b = e->c;
             break;
         }
         case DEL:
         {
-            const char op[] = "DEL";
-            unsigned int n = htonl(e->position);
-            char b = ' ';
-            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
-            fwrite(&n, sizeof(unsigned int), 1, outfile);
-            fwrite(&b, 1, 1, outfile);
+            op = "DEL";
+            b = 0;
             break;
         }
         case SET:
         {
-            const char op[] = "SET";
-            unsigned int n = htonl(e->position);
-            char b = e->c;
-            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
-            fwrite(&n, sizeof(unsigned int), 1, outfile);
-            fwrite(&b, 1, 1, outfile);
+            op = "SET";
+            b = e->c;
             break;
         }
 
         default:
             return;
     }
+
+    fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
+    fwrite(&n, sizeof(unsigned int), 1, outfile);
+    fwrite(&b, 1, 1, outfile);
 }
 
 
-unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t m, const char *str2, size_t n)
+unsigned int levenshtein_fill_matrix(edit** matrix, const char* str1, size_t m, const char *str2, size_t n)
 {
     for (int j = 1; j <= n; j++)
     {
@@ -83,80 +78,80 @@ unsigned int levenshtein_fill_matrix(edit** mat, const char* str1, size_t m, con
                 substitution_cost = 1;
             }
 
-            del = mat[i - 1][j].score + 1;
-            ins = mat[i][j - 1].score + 1;
-            subst = mat[i - 1][j - 1].score + substitution_cost;
+            del = matrix[i - 1][j].score + 1;
+            ins = matrix[i][j - 1].score + 1;
+            subst = matrix[i - 1][j - 1].score + substitution_cost;
 
             best = minmin(del, ins, subst);
 
-            mat[i][j].score = best;
-            mat[i][j].position = i - 1;
-            mat[i][j].c = str2[j - 1];
+            matrix[i][j].score = best;
+            matrix[i][j].position = i - 1;
+            matrix[i][j].c = str2[j - 1];
 
             if (best == del)
             {
-                mat[i][j].operation = DEL;
+                matrix[i][j].operation = DEL;
             }
             else if (best == ins)
             {
-                mat[i][j].operation = ADD;
+                matrix[i][j].operation = ADD;
             }
             else
             {
                 if (substitution_cost > 0)
                 {
-                    mat[i][j].operation = SET;
+                    matrix[i][j].operation = SET;
                 }
                 else
                 {
-                    mat[i][j].operation = NONE;
+                    matrix[i][j].operation = NOP;
                 }
             }
         }
     }
 
-    return mat[m][n].score;
+    return matrix[m][n].score;
 }
 
 
-edit** levenshtein_create_matrix(size_t len1, size_t len2)
+edit** levenshtein_create_matrix(size_t l1, size_t l2)
 {
-    edit** mat = malloc((len1 + 1) * sizeof(edit*));
-    if (mat == NULL)
+    edit** matrix = malloc((l1 + 1) * sizeof(edit*));
+    if (matrix == NULL)
     {
         return NULL;
     }
 
-    for (int i = 0; i <= len1; i++)
+    for (int i = 0; i <= l1; i++)
     {
-        mat[i] = malloc((len2 + 1) * sizeof(edit));
-        if (mat[i] == NULL)
+        matrix[i] = malloc((l2 + 1) * sizeof(edit));
+        if (matrix[i] == NULL)
         {
             for (int j = 0; j < i; j++)
             {
-                free(mat[j]);
+                free(matrix[j]);
             }
 
-            free(mat);
-            mat = NULL;
+            free(matrix);
+            matrix = NULL;
 
             return NULL;
         }
     }
 
-    for (int i = 0; i <= len1; i++)
+    for (int i = 0; i <= l1; i++)
     {
-        mat[i][0].score = i;
-        mat[i][0].c = 0;
+        matrix[i][0].score = i;
+        matrix[i][0].c = 0;
     }
 
-    for (int j = 0; j <= len2; j++)
+    for (int j = 0; j <= l2; j++)
     {
-        mat[0][j].score = j;
-        mat[0][j].c = 0;
+        matrix[0][j].score = j;
+        matrix[0][j].c = 0;
     }
 
-    return mat;
+    return matrix;
 }
 
 
@@ -183,7 +178,11 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
     dist = levenshtein_fill_matrix(mat, str1, len1, str2, len2);
 
     *script = malloc(dist * sizeof(edit));
-    if (*script)
+    if (!(*script))
+    {
+        dist = 0;
+    }
+    else
     {
         unsigned int p = dist - 1;
         int i = len1;
@@ -211,7 +210,7 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
                 }
                 default:
                 {
-                    if (curr->operation == NONE)
+                    if (curr->operation == NOP)
                     {
                         curr = &mat[--i][--j];
                         continue;
@@ -225,18 +224,14 @@ int script_string_distance(const char* str1, size_t len1, const char* str2, size
             }
         }
     }
-    else
-    {
-        dist = 0;
-    }
 
-
-    /* free matrix */
+    /* free matrix's inner arrays */
     for (int i = 0; i <= len1; i++)
     {
         free(mat[i]);
     }
 
+    /* free matrix */
     free(mat);
     mat = NULL;
 
@@ -251,15 +246,6 @@ int append_script_file(const char* file, edit* script, size_t len)
     {
         for (int i = 0; i < len; i++)
         {
-            //if (script[i].position == script[i-1].position
-            //&&  script[i].operation == script[i-1].operation && (script[i].operation == DEL || script[i].operation == SET)
-            // && i > 0)
-            //    cnt++;
-            //else
-            //    cnt = 0;
-
-           // script[i].position += cnt;
-
             script_print_edit(&script[i], f);
         }
         return 0;
@@ -299,12 +285,9 @@ int script_file_distance(const char* file1, const char* file2, const char* outfi
         return -1;
     }
 
-    printf("Distance: %d\n", distance);
-    printf("Edit script saved successfully: %s\n", outfile);
-
     free(script);
     script = NULL;
 
-    return 0;
+    return distance;
 
 }

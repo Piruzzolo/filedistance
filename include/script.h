@@ -24,7 +24,7 @@
 
 typedef enum
 {
-    NONE,
+    NOP,
     DEL,
     SET,
     ADD

@@ -50,6 +50,7 @@ int file_copy_to(FILE* infile, FILE* outfile, u_int32_t pos_to)
     return 0;
 }
 
+
 void file_copy(FILE* infile, FILE* outfile)
 {
     char c = 0;
@@ -98,7 +99,7 @@ int file_load(const char* filename, char** buffer)
 }
 
 
-u_int32_t bytes_to_uint32(const char* buf) // todo probabile problema di sicurezza
+u_int32_t bytes_to_uint32(const char buf[4])
 {
     return buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
 }

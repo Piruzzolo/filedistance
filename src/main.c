@@ -112,10 +112,13 @@ int main(int argc, char** argv)
         else if (argc == 5)
         {
             int ret = script_file_distance(argv[2], argv[3],argv[4]);
-            if (ret != 0)
+            if (ret < 0)
             {
                 printf("%s", CANTSAVE);
+                exit(EXIT_FAILURE);
             }
+            printf("DISTANCE: %d\n", ret);
+            printf("Edit script saved successfully: %s\n", argv[4]);
         }
         else
         {

@@ -41,29 +41,29 @@ node* list_append(node* list, void* data)
     if (list == NULL)
         return NULL;
     /* go to the last node */
-    node *cursor = list;
-    while (cursor->next != NULL)
+    node* curr = list;
+    while (curr->next != NULL)
     {
-        cursor = cursor->next;
+        curr = curr->next;
     }
 
     /* create a new node */
     node* new_node = list_create(data,NULL);
-    cursor->next = new_node;
+    curr->next = new_node;
 
     return list;
 }
 
 
-node* list_filter(node* list, int op, long value, comparison_f f)
+node* list_filter(node* list, comparison_f f, int op, long value)
 {
     if (list == NULL)
     {
         return NULL;
     }
-    if (f(list->data, op, value))
+    if ( f(list->data, op, value) )
     {
-        list->next = list_filter(list->next, op, value, f);
+        list->next = list_filter(list->next, f, op, value);
         return list;
     }
     else
@@ -72,7 +72,7 @@ node* list_filter(node* list, int op, long value, comparison_f f)
         free(list);
         list = NULL;
 
-        return list_filter(next, op, value, f);
+        return list_filter(next, f, op, value);
     }
 }
 
@@ -90,19 +90,18 @@ void list_traverse(node* list, callback_t f)
 
 void list_free(node* list)
 {
-    // todo list != NULL
-    node* cursor;
+    node* curr;
     node* tmp;
 
     if (list != NULL)
     {
-        cursor = list->next;
+        curr = list->next;
         list->next = NULL;
-        while (cursor != NULL)
+        while (curr != NULL)
         {
-            tmp = cursor->next;
-            free(cursor);
-            cursor = tmp;
+            tmp = curr->next;
+            free(curr);
+            curr = tmp;
         }
     }
 }
@@ -110,14 +109,19 @@ void list_free(node* list)
 
 int list_count(node* list)
 {
-    // todo list != NULL
-    node* cursor = list;
+    if (list == NULL)
+    {
+        return -1;
+    }
+
+    node* curr = list;
     int c = 0;
-    while (cursor != NULL)
+    while (curr != NULL)
     {
         c++;
-        cursor = cursor->next;
+        curr = curr->next;
     }
+
     return c;
 }
 
