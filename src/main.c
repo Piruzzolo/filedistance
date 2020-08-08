@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     {
         printf("%s", ONEARG);
         print_usage();
-        return 0;
+        return -1;
     }
 
     if (strcmp(argv[1], "distance") == 0)
@@ -102,29 +102,32 @@ int main(int argc, char** argv)
             if (result < 0)
             {
                 printf("%s", CANTOPEN);
-                exit(EXIT_FAILURE);
+                return -1;
             }
 
             printf("EDIT DISTANCE: %d\n", result);
             printf("TIME: %f\n", ((double)(end - begin)) / CLOCKS_PER_SEC);
+            return 0;
         }
 
         /* distance file1 file2 output */
         else if (argc == 5)
         {
-            int ret = script_file_distance(argv[2], argv[3],argv[4]);
+            int ret = script_file_distance(argv[2], argv[3], argv[4]);
             if (ret < 0)
             {
                 printf("%s", CANTSAVE);
-                exit(EXIT_FAILURE);
+                return -1;
             }
             printf("DISTANCE: %d\n", ret);
             printf("Edit script saved successfully: %s\n", argv[4]);
+            return 0;
         }
         else
         {
             printf("%s", NUMARGS);
             print_usage();
+            return -1;
         }
     }
 
@@ -133,16 +136,21 @@ int main(int argc, char** argv)
         /* apply inputfile filem outputfile */
         if (argc == 5)
         {
-            if (apply_edit_script(argv[2], argv[3], argv[4]) != 0)
+            if (apply_edit_script(argv[2], argv[3], argv[4]) == 0)
+            {
+                return 0;
+            }
+            else
             {
                 apply_print_err(errno);
-                exit(EXIT_FAILURE);
+                return -1;
             }
         }
         else
         {
             printf("%s", NUMARGS);
-            print_usage(); exit(EXIT_FAILURE);
+            print_usage();
+            return -1;
         }
     }
 
@@ -152,11 +160,13 @@ int main(int argc, char** argv)
         if (argc == 4)
         {
             search_min(argv[2], argv[3]);
+            return 0;
         }
         else
         {
             printf("%s", NUMARGS);
-            print_usage(); exit(EXIT_FAILURE);
+            print_usage();
+            return -1;
         }
     }
 
@@ -168,11 +178,13 @@ int main(int argc, char** argv)
             long limit = 0;
             parse_int_or_fail(argv[4], &limit);
             search_all(argv[2], argv[3], limit);
+            return 0;
         }
         else
         {
             printf("%s", NUMARGS);
-            print_usage(); exit(EXIT_FAILURE);
+            print_usage();
+            return -1;
         }
     }
 
@@ -182,6 +194,7 @@ int main(int argc, char** argv)
         if (argc == 2)
         {
             print_usage();
+            return 0;
         }
     }
     else
@@ -192,10 +205,10 @@ int main(int argc, char** argv)
         }
 
         print_usage();
+        return 0;
     }
 
-
-    exit(EXIT_SUCCESS);
+    return 0;
 }
 
 
@@ -234,7 +247,8 @@ void parse_int_or_fail(const char* str, long* v)
 
     if (endptr == str)
     {
-        fprintf(stderr, "%s", NODIGIT); exit(EXIT_FAILURE);
+        fprintf(stderr, "%s", NODIGIT);
+        exit(EXIT_FAILURE);
     }
 
     *v = val;

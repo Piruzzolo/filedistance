@@ -4,8 +4,8 @@ project(filedistance C)
 
 set(CMAKE_C_STANDARD 11)
 
-#set(CMAKE_C_FLAGS "-O3 -flto -fwhole-program -march=native -Wall -Wextra")
-#set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS "-O3 -flto -fwhole-program -march=native -w")
+set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
 
 add_executable(filedistance
         include/name_distance.h

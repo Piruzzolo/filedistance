@@ -127,12 +127,20 @@ int apply_edit_script(const char* infilename, const char* scriptfilename, const 
         else
         {
             errno = ECORRUPTD;
+
+            /* close files */
+            fclose(infile);
+            fclose(scriptfile);
+            fclose(outfile);
+    
             return -1;
         }
     }
 
     /* copy every other char */
     file_copy(infile, outfile);
+
+    fflush(outfile);
 
     /* close files */
     fclose(infile);

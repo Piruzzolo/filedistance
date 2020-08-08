@@ -25,37 +25,42 @@
 
 void script_print_edit(const edit* e, FILE* outfile)
 {
-    unsigned int n = htonl(e->position);
-    char b = 0;
-    char* op = NULL;
     switch (e->operation)
     {
         case ADD:
         {
-            op = "ADD";
-            b = e->c;
+            const char op[] = "ADD";
+            unsigned int n = htonl(e->position);
+            char b = e->c;
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
         case DEL:
         {
-            op = "DEL";
-            b = 0;
+            const char op[] = "DEL";
+            unsigned int n = htonl(e->position);
+            char b = ' ';
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
         case SET:
         {
-            op = "SET";
-            b = e->c;
+            const char op[] = "SET";
+            unsigned int n = htonl(e->position);
+            char b = e->c;
+            fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
+            fwrite(&n, sizeof(unsigned int), 1, outfile);
+            fwrite(&b, 1, 1, outfile);
             break;
         }
 
         default:
             return;
     }
-
-    fwrite(op, sizeof(char), sizeof(op) - 1, outfile);
-    fwrite(&n, sizeof(unsigned int), 1, outfile);
-    fwrite(&b, 1, 1, outfile);
 }
 
 
@@ -280,6 +285,10 @@ int script_file_distance(const char* file1, const char* file2, const char* outfi
 
     if (file_load(file1, &buf1) && file_load(file2, &buf2))
     {
+        //if (strlen(buf1) < strlen(buf2))
+        //{
+        //     distance = script_string_distance(buf2, strlen(buf2), buf1, strlen(buf1), &script);
+        //}
         distance = script_string_distance(buf1, strlen(buf1), buf2, strlen(buf2), &script);
     }
     else
@@ -289,6 +298,9 @@ int script_file_distance(const char* file1, const char* file2, const char* outfi
 
     if (append_script_file(outfile, script, distance) < 0)
     {
+        free(script);
+        script = NULL;
+
         return -1;
     }
 
